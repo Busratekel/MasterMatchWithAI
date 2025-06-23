@@ -32,6 +32,7 @@ Yastık seçimi için akıllı öneri sistemi. Bu proje, kullanıcıların ihtiy
 - Python 3.11+
 - Node.js 16+
 - npm veya yarn
+- SQL Server (veya başka bir veritabanı)
 
 ### Backend Kurulumu
 
@@ -59,7 +60,23 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-5. Uygulamayı çalıştırın:
+5. **ÖNEMLİ**: Veritabanı yapılandırması için `.env` dosyası oluşturun:
+```bash
+# .env.example dosyasını .env olarak kopyalayın
+cp .env.example .env
+```
+
+6. `.env` dosyasını düzenleyin ve kendi veritabanı bilgilerinizi girin:
+```env
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
+DB_SERVER=your_server_name
+DB_PORT=1433
+DB_NAME=your_database_name
+DB_DRIVER=ODBC+Driver+17+for+SQL+Server
+```
+
+7. Uygulamayı çalıştırın:
 ```bash
 python main.py
 ```
@@ -85,6 +102,12 @@ npm start
 
 Frontend `http://localhost:3000` adresinde çalışacaktır.
 
+## 🔒 Güvenlik
+
+- **Veritabanı bilgileri** `.env` dosyasında saklanır ve GitHub'a yüklenmez
+- **Hassas bilgiler** kod içinde hardcode edilmemiştir
+- **Environment variables** kullanılarak güvenlik sağlanmıştır
+
 ## 🎯 Kullanım
 
 1. Tarayıcınızda `http://localhost:3000` adresine gidin
@@ -100,6 +123,9 @@ PillowSelectionRobot/
 │   ├── main.py             # Ana uygulama dosyası
 │   ├── import_yastiklar.py # Veri import scripti
 │   ├── check_excel_columns.py # Excel kontrol scripti
+│   ├── .env                # Veritabanı bilgileri (GitHub'a yüklenmez)
+│   ├── .env.example        # Örnek .env dosyası
+│   ├── requirements.txt    # Python bağımlılıkları
 │   ├── venv/               # Python virtual environment
 │   └── instance/           # SQLite veritabanı
 ├── frontend/               # React frontend
@@ -109,6 +135,7 @@ PillowSelectionRobot/
 │   │   └── assets/         # Statik dosyalar
 │   ├── package.json        # Node.js bağımlılıkları
 │   └── public/             # Public dosyalar
+├── .gitignore              # Git ignore dosyası
 └── README.md               # Bu dosya
 ```
 
@@ -118,6 +145,7 @@ PillowSelectionRobot/
 - Flask debug modu aktif
 - SQLite veritabanı kullanılıyor
 - CORS desteği mevcut
+- Environment variables ile güvenli yapılandırma
 
 ### Frontend Geliştirme
 - Hot reload aktif

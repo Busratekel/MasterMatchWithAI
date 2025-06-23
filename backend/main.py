@@ -2,14 +2,29 @@ from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import traceback
+import os
+from dotenv import load_dotenv
+
+# .env dosyasını yükle
+load_dotenv()
 
 app = Flask(__name__)
 
 # Geliştirme sırasında tüm kaynaklardan gelen isteklere izin ver
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Veritabanı Yapılandırması
-app.config['SQLALCHEMY_DATABASE_URI'] = "mssql+pyodbc://web.admin:334455Dqh@DQH-KAY-WEB-SRV\\SQLEXPRESS,1433/PillowSelectionRobot?driver=ODBC+Driver+17+for+SQL+Server"
+# Veritabanı Yapılandırması - .env dosyasından güvenli şekilde oku
+db_username = os.getenv('DB_USERNAME')
+db_password = os.getenv('DB_PASSWORD')
+db_server = os.getenv('DB_SERVER')
+db_port = os.getenv('DB_PORT')
+db_name = os.getenv('DB_NAME')
+db_driver = os.getenv('DB_DRIVER')
+
+# Veritabanı URI'sini oluştur
+database_uri = f"mssql+pyodbc://{db_username}:{db_password}@{db_server},{db_port}/{db_name}?driver={db_driver}"
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)

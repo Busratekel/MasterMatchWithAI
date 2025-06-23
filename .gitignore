@@ -38,6 +38,14 @@ instance/
 *.sqlite
 *.sqlite3
 
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+
 # Node.js
 node_modules/
 npm-debug.log*
@@ -72,13 +80,6 @@ Thumbs.db
 # Logs
 *.log
 logs/
-
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
 # Temporary files
 *.tmp
