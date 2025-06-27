@@ -5,7 +5,7 @@ def debug_import():
     with app.app_context():
         try:
             print("1. Excel dosyası okunuyor...")
-            df = pd.read_excel('YastıkSon.xlsx')
+            df = pd.read_excel('yastiklar.xlsx', header=2, sheet_name='MATRİS GÜNCEL')
             print(f"Excel'den {len(df)} satır okundu")
             print(f"Sütunlar: {df.columns.tolist()}")
             
@@ -14,6 +14,7 @@ def debug_import():
             
             print("\n3. Mevcut yastık sayısı kontrol ediliyor...")
             current_count = Yastik.query.count()
+            print(list(df.columns))
             print(f"Mevcut yastık sayısı: {current_count}")
             
             print("\n4. Yastıklar siliniyor...")
@@ -29,19 +30,16 @@ def debug_import():
                     product_url = str(row['Link']) if 'Link' in row and pd.notna(row['Link']) else None
                     
                     yastik = Yastik(
-                        isim=row['YASTIKLAR'],
-                        gorsel=image_url,
-                        link=product_url,
-                        sertlik=row.get('Son olarak size daha doğru sonuçlar verebilmemiz adına, yatağınızın sertlik derecesi nedir?'),
-                        uyku_pozisyonu=row.get('Genellikle hangi uyku pozisyonunda uyuyorsunuz?'),
-                        bmi=row.get('Boyunuz ve Kilonuz? (BMI) (Boy ve kilo girildikten sonra çıkan değere göre)'),
-                        dogal_malzeme=row.get('Doğal malzemelerden yapılmış yastıklar (örneğin, pamuk, yün, bambu) sizin için önemli mi?'),
-                        terleme=row.get('Uyurken terleme probleminiz var mı?'),
-                        agri_bolge=row.get('Uyurken veya sabah uyandığınızda vücudunuzun hangi bölgelerinde ağrı hissediyorsunuz?'),
-                        yas=row.get('Yaşınız?'),
-                        tempo=row.get('Gün içerisinde iş, spor vb. tempo yoğunluğunuz nasıl?'),
-                        mide_rahatsizligi=row.get('Uyku düzeninizi etkileyen mide asidi veya reflü gibi bir rahatsızlığınız var mı?'),
-                        nefes_problemi=row.get('Uyurken nefes alıp verme düzeninizde herhangi bir zorlanma veya rahatsızlık yaşıyor musunuz?')
+                        isim=row.get('YASTIKLAR'),
+                        gorsel=row.get('Görsel'),
+                        link=row.get('Link'),
+                        bmi=row.get('Boyunuz Kilonuz ve Yaşınız? (BMI) (Boy, kilo ve yaş girildikten sonra çıkan değere göre)'),
+                        yas=row.get('Yaş?'),
+                        uyku_pozisyonu=row.get('Sizin için en rahat uyku pozisyonunu seçer misiniz?'),  
+                        uyku_düzeni=row.get('Uyku düzeniniz genellikle nasıldır?'),
+                        tempo=row.get('Gününüzün temposunu nasıl tanımlarsınız?'),
+                        agri_bolge=row.get('Sabahları belirli bir bölgede ağrı hissediyor musunuz?'),
+                        dogal_malzeme=row.get('Yastıkta doğal içerikler sizin için öncelikli mi?'),
                     )
                     db.session.add(yastik)
                     added_count += 1

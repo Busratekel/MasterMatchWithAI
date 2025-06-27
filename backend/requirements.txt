@@ -5,7 +5,7 @@ scikit-learn==1.7.0
 pandas==2.2.0
 numpy==1.26.4
 openpyxl==3.1.2
-pyodbc==5.0.1
+# pyodbc==5.0.1  # Geçici olarak devre dışı
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.0
 Werkzeug==3.1.3
