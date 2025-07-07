@@ -4,19 +4,43 @@ from flask_cors import CORS
 import traceback
 from datetime import datetime
 import json
+import hashlib
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
+# Static folder ayarı - PDF dosyaları için
+app = Flask(__name__, static_folder='public', static_url_path='/public')
 
 # CORS ayarlarını daha güvenli hale getir
 CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000"]}}, supports_credentials=True)
 
 # Veritabanı Yapılandırması
-app.config['SQLALCHEMY_DATABASE_URI'] = "mssql+pyodbc://web.admin:334455Dqh@DQH-KAY-WEB-SRV\\SQLEXPRESS,1433/PillowSelectionRobot?driver=ODBC+Driver+17+for+SQL+Server"
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
 # --- Veritabanı Modelleri ---
+class KvkkMetin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    dosya_adi = db.Column(db.String(200), nullable=False)
+    versiyon = db.Column(db.String(20), nullable=False)
+    hash = db.Column(db.String(64), nullable=False)  # SHA256 hash
+    aktif = db.Column(db.Boolean, default=True)
+    olusturma_tarihi = db.Column(db.DateTime, default=datetime.utcnow)
+
+class KvkkOnay(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    log_id = db.Column(db.Integer, nullable=False)
+    kvkk_metin_id = db.Column(db.Integer, nullable=False)
+    ip_adresi = db.Column(db.String(50))
+    onay_tarihi = db.Column(db.DateTime, default=datetime.utcnow)
+    onay_durumu = db.Column(db.String(10), default='1')
+    onay_yontemi = db.Column(db.String(50), default='popup')
+
 class Yastik(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     isim = db.Column(db.String(150), nullable=False)
@@ -32,7 +56,7 @@ class Yastik(db.Model):
     tempo = db.Column(db.String(350))
 
     def to_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        return {c.name: getattr(self, c.name) for c in Yastik.__table__.columns}
 
 class KullaniciLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -45,6 +69,8 @@ class KullaniciLog(db.Model):
     vki = db.Column(db.String(10))
     cevaplar = db.Column(db.Text)  # Tüm cevaplar JSON olarak
     tarih = db.Column(db.DateTime, default=datetime.utcnow)
+    incelendi_mi = db.Column(db.Boolean, default=False)
+    incelenen_urunler = db.Column(db.Text, nullable=True)
 
 # --- Sabit Veriler ---
 SORU_AGIRLIKLARI = {
@@ -63,8 +89,8 @@ QUESTIONS = [
     {'id': 'uyku_düzeni', 'question': 'Uyku düzeniniz genellikle nasıldır?', 'type': 'checkbox', 'options': ['Uykum terleme nedeniyle bölünüyor.', 'Hiçbir problem yaşamıyorum, sabahları dinlenmiş uyanıyorum.','Nefes almakta zorlanıyorum, zaman zaman horlama problemi yaşıyorum','Reflü nedeniyle geceleri sık sık uyanıyorum.'], 'info': 'Terleme sorunu için özel yastıklar mevcuttur.', 'order': 3},
     {'id': 'tempo', 'question': 'Gününüzün temposunu nasıl tanımlarsınız?', 'type': 'radio', 'options': ['Genelde orta tempoda, dengeli bir günüm oluyor.', 'Yoğun tempolu bir gün geçiriyorum.','Oldukça sakin bir tempom var.'], 'info': 'Yoğun tempolu yaşamda vücut daha fazla destek ve dinlenmeye ihtiyaç duyar. Doğru yastık, günün yorgunluğunu hafifletir.', 'order': 4},
     {'id': 'agri_bolge', 'question': 'Sabahları belirli bir bölgede ağrı hissediyor musunuz?', 'type': 'checkbox', 'options': ['Hiçbir ağrı hissetmiyorum', 'Bel', 'Omuz', 'Boyun', 'Hepsi'], 'info': 'Boyun, omuz veya bel ağrısı; yanlış yastık seçiminden kaynaklanıyor olabilir. Vücudunuzu dinleyin, ihtiyacınıza uygun yastığı seçin.', 'order': 5},
-    {'id': 'dogal_malzeme', 'question': 'Yastıkta doğal içerikler sizin için öncelikli mi?', 'type': 'radio', 'options': ['Evet, doğal içerikler benim için öncelikli/önemli', 'Hayır, doğal malzemeler önceliğim değil; benim için konfor daha önemli'], 'info': 'Doğal içerikler nefes alabilirlik sağlar, hassas ciltler için daha uygundur. Bambu, pamuk ve yün gibi malzemeler konfor sunar.', 'order': 6},
-    {'id': 'sertlik', 'question': 'Yatak sertlik derecenizi belirtir misiniz? ?', 'type': 'checkbox', 'options': ['Yumuşak', 'Orta', 'Sert', 'Hepsi'], 'info': 'Yatak sertliği, yastığın yüksekliği ve dolgunluğu ile uyumlu olmalı. Uyumlu ikili, daha sağlıklı bir uyku sağlar.', 'order': 7}
+    {'id': 'dogal_malzeme', 'question': 'Uyku sırasında sizin için daha önemli olan nedir?', 'type': 'radio', 'options': ['Doğal malzemelerin sunduğu doğallık ve nefes alabilirlik', 'Modern teknolojili yastıkların sağladığı konfor ve destek'], 'info': 'Doğal içerikler nefes alabilirlik sağlar, hassas ciltler için daha uygundur. Bambu, pamuk ve yün gibi malzemeler konfor sunar.', 'order': 6},
+    {'id': 'sertlik', 'question': 'Yatak sertlik derecenizi belirtir misiniz?', 'type': 'checkbox', 'options': ['Yumuşak', 'Orta', 'Sert', 'Hepsi'], 'info': 'Yatak sertliği, yastığın yüksekliği ve dolgunluğu ile uyumlu olmalı. Uyumlu ikili, daha sağlıklı bir uyku sağlar.', 'order': 7}
 ]
 
 # --- API Endpoint'leri ---
@@ -93,22 +119,10 @@ def recommend():
         responses = data.get('responses', {})
         user_info = data.get('user', {})
 
-        # DEBUG: Gelen veriyi kontrol et
-        print("🔍 DEBUG: Gelen responses verisi:")
-        for key, value in responses.items():
-            print(f"  {key}: {value}")
-            if isinstance(value, list):
-                print(f"    Array uzunluğu: {len(value)}")
-                if len(value) > 0:
-                    print(f"    İlk eleman tipi: {type(value[0])}")
-                    if isinstance(value[0], list):
-                        print(f"    İç içe array tespit edildi!")
-
-        yas = responses.get('bmi_age', {}).get('yas')
+        yas = responses.get('bmi_age', {}).get('yas_gercek')
         boy = responses.get('bmi_age', {}).get('boy')
         kilo = responses.get('bmi_age', {}).get('kilo')
         vki = responses.get('bmi_age', {}).get('vki')
-
         ad = user_info.get('ad')
         soyad = user_info.get('soyad')
         ip_adresi = request.remote_addr if not (ad and soyad) else None
@@ -125,7 +139,6 @@ def recommend():
         )
         db.session.add(log)
         db.session.commit()
-        print("LOG EKLENDİ:", log.id)
 
         if not responses:
             return jsonify(error="Cevaplar alınamadı."), 400
@@ -209,18 +222,105 @@ def recommend():
                 scored_yastiklar.append({'yastik': yastik.to_dict(), 'score': score})
 
         if not scored_yastiklar:
-            return jsonify(recommendations=[])
+            return jsonify(recommendations=[], log_id=log.id)
 
         sorted_yastiklar = sorted(scored_yastiklar, key=lambda x: x['score'], reverse=True)
         top_yastiklar = sorted_yastiklar[:5]
         
         recommendations = [item['yastik'] for item in top_yastiklar]
-        return jsonify(recommendations=recommendations)
+        return jsonify(recommendations=recommendations, log_id=log.id)
 
     except Exception as e:
         print(f"Öneri sırasında hata: {e}")
         traceback.print_exc()
         return jsonify(error="Sunucu hatası."), 500
+
+@app.route('/kvkk_onay_ekle', methods=['POST'])
+def kvkk_onay_ekle():
+    try:
+        data = request.get_json()
+        log_id = data.get('log_id')
+        kvkk_metin_id = data.get('kvkk_metin_id')
+        ip_adresi = data.get('ip_adresi', request.remote_addr)
+        onay_durumu = data.get('onay_durumu', 'kabul')
+        onay_yontemi = data.get('onay_yontemi', 'popup')
+        onay_tarihi = datetime.utcnow()
+        if not log_id or not kvkk_metin_id:
+            return jsonify({'error': 'log_id ve kvkk_metin_id zorunlu!'}), 400
+        onay = KvkkOnay(
+            log_id=log_id,
+            kvkk_metin_id=kvkk_metin_id,
+            ip_adresi=ip_adresi,
+            onay_tarihi=onay_tarihi,
+            onay_durumu=onay_durumu,
+            onay_yontemi=onay_yontemi
+        )
+        db.session.add(onay)
+        db.session.commit()
+        return jsonify({'success': True, 'onay_id': onay.id})
+    except Exception as e:
+        print(f"KVKK onay ekleme hatası: {e}")
+        traceback.print_exc()
+        return jsonify({'error': 'Sunucu hatası'}), 500
+
+@app.route('/kvkk_aktif_pdf')
+def kvkk_aktif_pdf():
+    try:
+        # Aktif KVKK metnini bul
+        aktif_kvkk = KvkkMetin.query.filter_by(aktif=True).first()
+        
+        if not aktif_kvkk:
+            return jsonify({'error': 'Aktif KVKK metni bulunamadı'}), 404
+        
+        # PDF dosya yolunu oluştur
+        pdf_path = os.path.join('public', aktif_kvkk.dosya_adi)
+        
+        # Dosyanın var olup olmadığını kontrol et
+        if not os.path.exists(pdf_path):
+            return jsonify({'error': 'PDF dosyası bulunamadı'}), 404
+        
+        # Dosya URL'ini oluştur
+        pdf_url = f"/public/{aktif_kvkk.dosya_adi}"
+        
+        return jsonify({
+            'id': aktif_kvkk.id,
+            'dosya_adi': aktif_kvkk.dosya_adi,
+            'versiyon': aktif_kvkk.versiyon,
+            'hash': aktif_kvkk.hash,
+            'url': pdf_url,
+            'aktif': aktif_kvkk.aktif
+        })
+        
+    except Exception as e:
+        print(f"KVKK PDF getirme hatası: {e}")
+        traceback.print_exc()
+        return jsonify({'error': 'Sunucu hatası'}), 500
+
+@app.route('/log_urun_inceleme', methods=['POST'])
+def log_urun_inceleme():
+    try:
+        data = request.get_json()
+        log_id = data.get('log_id')
+        urun_ismi = data.get('urun_ismi')
+        if not log_id or not urun_ismi:
+            return jsonify({'error': 'log_id ve urun_ismi zorunlu!'}), 400
+        log = KullaniciLog.query.get(log_id)
+        if not log:
+            return jsonify({'error': 'Log bulunamadı!'}), 404
+        log.incelendi_mi = True
+        if log.incelenen_urunler:
+            urunler = log.incelenen_urunler.split(',')
+            if urun_ismi not in urunler:
+                urunler.append(urun_ismi)
+            log.incelenen_urunler = ','.join(urunler)
+        else:
+            log.incelenen_urunler = urun_ismi
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Ürün inceleme logu ekleme hatası: {e}")
+        traceback.print_exc()
+        return jsonify({'error': 'Sunucu hatası'}), 500
 
 # Uygulamayı geliştirme modunda çalıştırmak için
 if __name__ == '__main__':
