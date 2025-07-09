@@ -90,12 +90,27 @@ Backend `http://localhost:5000` adresinde çalışacaktır.
 cd frontend
 ```
 
-2. Bağımlılıkları yükleyin:
+2. Environment variable dosyasını oluşturun:
+```bash
+# env.example dosyasını .env olarak kopyalayın
+cp env.example .env
+```
+
+3. `.env` dosyasını düzenleyin:
+```env
+# Geliştirme ortamı için
+REACT_APP_API_URL=http://localhost:5000
+
+# Canlı ortam için
+# REACT_APP_API_URL=https://api.seninsite.com
+```
+
+4. Bağımlılıkları yükleyin:
 ```bash
 npm install
 ```
 
-3. Uygulamayı çalıştırın:
+5. Uygulamayı çalıştırın:
 ```bash
 npm start
 ```
@@ -105,8 +120,11 @@ Frontend `http://localhost:3000` adresinde çalışacaktır.
 ## 🔒 Güvenlik
 
 - **Veritabanı bilgileri** `.env` dosyasında saklanır ve GitHub'a yüklenmez
+- **API URL'leri** environment variables ile yönetilir
 - **Hassas bilgiler** kod içinde hardcode edilmemiştir
 - **Environment variables** kullanılarak güvenlik sağlanmıştır
+- **Rate limiting** API endpoint'lerinde uygulanmıştır
+- **CORS** güvenli şekilde yapılandırılmıştır
 
 ## 🎯 Kullanım
 

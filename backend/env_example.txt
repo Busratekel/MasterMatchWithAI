@@ -1,0 +1,24 @@
+# Flask Ortam Ayarları
+FLASK_ENV=production
+FLASK_DEBUG=False
+
+# Veritabanı Ayarları
+DATABASE_URL=mssql+pyodbc://web.admin:334455Dqh@PillowSelectionRobot:1433/database?driver=ODBC+Driver+17+for+SQL+Server
+
+# Redis Ayarları (Canlı ortam için)
+REDIS_URL=redis://localhost:6379/0
+# Veya cloud Redis servisi için:
+# REDIS_URL=redis://username:password@host:port/database
+
+# CORS Ayarları (Canlı ortam için)
+ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+
+# Güvenlik Ayarları
+SECRET_KEY=your_very_secure_secret_key_here
+SESSION_COOKIE_SECURE=True
+SESSION_COOKIE_HTTPONLY=True
+
+# Rate Limiting Ayarları (Canlı ortam için)
+RATE_LIMIT_DAILY=1000
+RATE_LIMIT_HOURLY=100
+RATE_LIMIT_MINUTE=10 
