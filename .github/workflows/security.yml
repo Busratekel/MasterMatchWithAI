@@ -55,8 +55,8 @@ jobs:
       run: |
         echo "🔍 Kod içinde hassas bilgiler aranıyor..."
         
-        # Hassas pattern'leri kontrol et
-        SENSITIVE_PATTERNS=(
+        # Sadece gerçekten tehlikeli pattern'leri kontrol et (hardcoded değerler)
+        DANGEROUS_PATTERNS=(
           "password.*=.*['\"][^'\"]*['\"]"
           "secret.*=.*['\"][^'\"]*['\"]"
           "api_key.*=.*['\"][^'\"]*['\"]"
@@ -67,15 +67,16 @@ jobs:
         
         VIOLATIONS=()
         
-        for pattern in "${SENSITIVE_PATTERNS[@]}"; do
-          if grep -r --include="*.py" --include="*.js" --include="*.jsx" --include="*.json" "$pattern" . | grep -v "env_example" | grep -v "env.example" | grep -q .; then
+        for pattern in "${DANGEROUS_PATTERNS[@]}"; do
+          # os.getenv() kullanımlarını hariç tut
+          if grep -r --include="*.py" --include="*.js" --include="*.jsx" --include="*.json" "$pattern" . | grep -v "env_example" | grep -v "env.example" | grep -v "os.getenv" | grep -v "process.env" | grep -q .; then
             VIOLATIONS+=("$pattern")
           fi
         done
         
         if [ ${#VIOLATIONS[@]} -ne 0 ]; then
           echo "❌ Hassas bilgi tespit edildi!"
-          echo "Bulunan pattern'ler:"
+          echo "Bulunan tehlikeli pattern'ler:"
           printf '%s\n' "${VIOLATIONS[@]}"
           echo "🚨 Bu bilgiler environment değişkenlerinde saklanmalı!"
           exit 1
