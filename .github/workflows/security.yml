@@ -18,7 +18,7 @@ jobs:
       run: |
         echo "🔍 Hassas dosyalar kontrol ediliyor..."
         
-        # Yasaklı dosyaları kontrol et
+        # Yasaklı dosyaları kontrol et (sadece git'e eklenen dosyalar)
         FORBIDDEN_FILES=(
           ".env"
           ".env.local"
@@ -36,14 +36,14 @@ jobs:
         VIOLATIONS=()
         
         for file in "${FORBIDDEN_FILES[@]}"; do
-          if find . -name "$file" -type f | grep -q .; then
+          if git ls-files | grep -q "$file"; then
             VIOLATIONS+=("$file")
           fi
         done
         
         if [ ${#VIOLATIONS[@]} -ne 0 ]; then
           echo "❌ Güvenlik ihlali tespit edildi!"
-          echo "Yasaklı dosyalar:"
+          echo "Git'e eklenen yasaklı dosyalar:"
           printf '%s\n' "${VIOLATIONS[@]}"
           echo "🚨 Bu dosyalar güvenlik nedeniyle yüklenemez!"
           exit 1
