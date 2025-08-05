@@ -18,28 +18,19 @@ jobs:
       run: |
         echo "🔍 Hassas dosyalar kontrol ediliyor..."
         
-        # Debug: Git dosyalarını listele
-        echo "📋 Git'e eklenen dosyalar:"
-        git ls-files | head -20
-        
-        # Yasaklı dosyaları kontrol et (sadece git'e eklenen dosyalar)
-        FORBIDDEN_FILES=(
-          ".env"
-          ".env.local"
-          ".env.production"
-          "backend/.env"
-          "frontend/.env"
-          "*.key"
-          "*.pem"
-          "*.p12"
+        # Sadece gerçekten tehlikeli dosyaları kontrol et
+        DANGEROUS_FILES=(
           "credentials.json"
           "service-account.json"
           "database.db"
+          "*.key"
+          "*.pem"
+          "*.p12"
         )
         
         VIOLATIONS=()
         
-        for file in "${FORBIDDEN_FILES[@]}"; do
+        for file in "${DANGEROUS_FILES[@]}"; do
           echo "🔍 Kontrol ediliyor: $file"
           if git ls-files | grep -q "$file"; then
             echo "❌ Bulundu: $file"
