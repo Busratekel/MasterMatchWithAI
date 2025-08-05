@@ -1,0 +1,461 @@
+/* === DÜZGÜN RESPONSIVE YAPISI === */
+
+/* Sayfa scroll'unu kapat */
+html, body {
+  overflow: hidden !important;
+  height: 100vh !important;
+  width: 100vw !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.stepper-center-row {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #c4d8df;
+  width: 100vw;
+  height: 100vh;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.stepper-content-card, .stepper-sidebar {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.10);
+  padding: 32px 24px;
+  margin: 0;
+}
+
+.stepper-content-card {
+  width: 900px;
+  max-width: 80vw;
+  height: 500px;
+  min-height: 400px;
+  padding: 40px 20px;
+  position: relative;
+  left: 10px;
+}
+
+.sidebar-footer {
+  width: 100%;
+  margin-top: -50px;
+}
+
+.form-navigation {
+  position: absolute;
+  bottom: 32px;
+  left: 0;
+  width: 100%;
+  justify-content: flex-end;
+  display: flex;
+  z-index: 1000;
+}
+
+.form-nav-right {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.options-container {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: 24px;
+  justify-content: flex-end;
+  align-items: flex-end;
+  width: 100%;
+  margin-top: 64px;
+  margin-bottom: 80px;
+}
+
+@keyframes progressBarStripes {
+  0% { background-position: 0 0; }
+  100% { background-position: 32px 0; }
+}
+
+@keyframes shine {
+  0% { left: -40%; }
+  100% { left: 100%; }
+}
+
+.steps-list-plain {
+  list-style: none;
+  padding: 0;
+  margin: 25px 0 100px 0;
+  font-family: 'IvyPresto Text', Arial, Helvetica, sans-serif;
+  font-weight: 150;
+  font-style: italic;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.step-plain-item {
+  color: black;
+  font-size: 1.0rem;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  background: #f4f8fa;
+  border: 2px solid #b3c7d6;
+  border-radius: 6px;
+  padding: 6px 8px;
+  transition: background 0.2s, border 0.2s, color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px 0 rgba(44, 132, 255, 0.04);
+  position: relative;
+}
+
+.step-plain-item.active {
+  background: #e3eef5;
+  border: 2.5px solid #7fa6bb;
+  color: #2563eb;
+  font-weight: bold;
+  box-shadow: 0 4px 16px 0 rgba(44, 132, 255, 0.10);
+}
+
+.step-plain-item.not-clickable {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.step-plain-item.with-underline {
+  border-bottom: none;
+}
+
+.step-plain-item:hover:not(.active):not(.not-clickable) {
+  background: #eaf3f8;
+  border: 2.5px solid #a2bdd2;
+  color: #2563eb;
+}
+
+.step-plain-text {
+  color: #4b6b7a;
+  flex: 1;
+  font-size: 1.1em;
+  font-style: normal;
+}
+
+.step-plain-item.active .step-plain-text {
+  color: #4b74a2;
+}
+
+.step-check-mark-left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  font-size: 1.15em;
+  font-weight: bold;
+  border-radius: 50%;
+  background: #e3eef5;
+  color: #2563eb;
+  margin-right: 12px;
+  border: 2px solid #b3c7d6;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+}
+
+.step-plain-item.active .step-check-mark-left {
+  background: #2563eb;
+  color: #fff;
+  border: 2px solid #2563eb;
+}
+
+.step-plain-item.not-clickable .step-check-mark-left {
+  opacity: 0.5;
+}
+
+.step-check-mark-right {
+  display: none;
+}
+
+.btn-restart-sidebar {
+  width: 100%;
+  padding: 12px 0;
+  background: linear-gradient(90deg, #4b74a2 0%, #98acb7 100%);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: -10px;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-restart-sidebar:hover {
+  background: linear-gradient(90deg, #667eea 0%, #4b74a2 100%);
+}
+
+.stepper-sidebar {
+  flex: 1 1 340px;
+  min-width: 300px;
+  max-width: 400px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 32px 24px;
+  height: 700px;
+  position: relative;
+  left: -8px;
+  overflow-y: unset;
+}
+
+.stepper-content-card {
+  flex: 2 1 700px;
+  min-width: 400px;
+  max-width: 1200px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 40px 30px;
+  height: 700px;
+  max-height: 700px;
+  position: relative;
+  left: 8px;
+}
+
+.sidebar-header {
+  margin-top: -50px !important;
+  margin-left: -20px;
+  padding-top: 0px;
+}
+
+/* Progress bar for sidebar */
+.sidebar-progress-bar-container {
+  background: #e3e8f0 !important;
+  height: 18px !important;
+  border-radius: 12px !important;
+  overflow: visible !important;
+  margin-top: 10px;
+}
+
+.sidebar-progress-bar {
+  height: 18px !important;
+  min-width: 20px !important;
+  background-image:
+    repeating-linear-gradient(135deg, rgba(255,255,255,0.35) 0px, rgba(255,255,255,0.35) 8px, transparent 8px, transparent 16px),
+    linear-gradient(90deg, #00e0ff 0%, #2563eb 50%, #7c3aed 100%);
+  background-size: 32px 32px, 100% 100%;
+  animation: progressBarStripes 0.7s linear infinite;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 12px 0 rgba(44, 132, 255, 0.18) !important;
+  opacity: 1 !important;
+  display: block !important;
+  z-index: 1000 !important;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes progressBarStripes {
+  0% { background-position: 0 0, 0 0; }
+  100% { background-position: 32px 0, 0 0; }
+}
+
+/* Soru altı çizgisi */
+.with-underline {
+  border-bottom: 2px solid #e3e8f0;
+}
+
+.stepper-center-row {
+  display: flex;
+  gap: 8px;
+  width: auto;
+}
+
+/* ===== MOBİL VE TABLET AYARLARI ===== */
+
+/* Mobil ve tablet cihazlar (1366px ve altı) */
+@media (max-width: 1366px) {
+  /* Sayfa scroll'unu kapat */
+  html, body {
+    overflow: hidden !important;
+    height: 100vh !important;
+    width: 100vw !important;
+  }
+  
+  .stepper-center-row {
+    position: fixed !important;
+    inset: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
+    background: #c4d8df !important;
+    overflow: hidden !important;
+  }
+  
+  /* Sidebar'ı gizle */
+  .stepper-sidebar {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    z-index: -9999 !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  
+  /* Content card'ı tam genişlik yap ve scroll ekle */
+  .stepper-content-card {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 20px auto !important;
+    padding: 20px 15px 100px 15px !important;
+    border-radius: 20px !important;
+    height: 130vh !important;
+    min-height: 400px !important;
+    max-height: 130vh !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+    left: 0 !important;
+    top: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    transform: none !important;
+    z-index: 1 !important;
+  }
+  
+  /* Butonları sağda sabit yap */
+  .form-navigation {
+    position: fixed !important;
+    bottom: 20px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(95vw - 30px) !important;
+    max-width: calc(95vw - 30px) !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    justify-content: flex-end !important;
+    z-index: 999999 !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    padding: 15px 20px !important;
+    border-radius: 15px !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2) !important;
+    pointer-events: auto !important;
+  }
+  
+  .form-nav-right {
+    gap: 15px !important;
+    justify-content: flex-end !important;
+    width: auto !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+  
+  .form-navigation .btn,
+  .form-navigation .btn-secondary,
+  .form-navigation .btn-complete {
+    font-size: 0.9rem !important;
+    padding: 10px 20px !important;
+    min-width: 90px !important;
+    max-width: 120px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    background: #98acb9 !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 20px !important;
+    cursor: pointer !important;
+    font-weight: 500 !important;
+    pointer-events: auto !important;
+    z-index: 999999 !important;
+  }
+}
+
+/* ===== DESKTOP SIDEBAR AYARLARI ===== */
+
+/* Desktop cihazlar (1367px ve üstü) */
+@media (min-width: 1367px) {
+  /* Sidebar header'ı küçült */
+  .sidebar-header {
+    margin-top: -70px !important;
+    margin-left: -30px !important;
+    padding-top: 0px !important;
+  }
+  
+  /* Logo ve başlık küçült */
+  .sidebar-header h1,
+  .sidebar-header h2,
+  .sidebar-header h3,
+  .sidebar-header .logo {
+    font-size: 1.0rem !important;
+    margin-bottom: 8px !important;
+  }
+  
+  /* Progress bar margin azalt */
+  .sidebar-progress-bar-container {
+    margin-top: 5px !important;
+  }
+  
+  /* Liste yukarı yaklaştır */
+  .steps-list-plain {
+    margin: 15px 0 80px 0 !important;
+    gap: 12px !important;
+  }
+  .step-plain-text{
+    font-size: 1.0rem !important;
+  }
+  .options-container {
+    margin-top: 6px !important;
+  }
+  .option-text{
+    font-size: 1.2rem !important;
+  }
+  .vki-row{
+    margin-top: 5px !important;
+  }
+  .form-navigation{
+    margin-left: -10px !important;
+    padding: 10px !important;
+  }
+  .bmi-age-special-wrapper{
+    margin-top: -60px !important;
+  }
+  
+  /* Teste yeniden başla butonu sidebar içinde kalacak */
+  .btn-restart-sidebar {
+    position: relative !important;
+    bottom: auto !important;
+    margin-top: 10px !important;
+  }
+  .sidebar-logo{
+    width: 300px !important;
+    margin-left: 50px !important;
+    margin-top: 10px !important;
+  }
+}                                                    

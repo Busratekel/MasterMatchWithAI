@@ -1,24 +1,61 @@
-# Flask Ortam Ayarları
-FLASK_ENV=production
-FLASK_DEBUG=False
+# ==========================================
+# YASTIK SEÇİM ROBOTU - ENVIRONMENT ÖRNEĞİ
+# ==========================================
+# Bu dosyayı .env olarak kopyalayın ve gerçek değerlerle doldurun
+# ⚠️  HİÇBİR ZAMAN .env dosyasını GitHub'a yüklemeyin!
 
-# Veritabanı Ayarları
-DATABASE_URL=mssql+pyodbc://web.admin:334455Dqh@PillowSelectionRobot:1433/database?driver=ODBC+Driver+17+for+SQL+Server
+# ==========================================
+# VERİTABANI AYARLARI
+# ==========================================
+# MSSQL bağlantı stringi (production için)
+DATABASE_URL=mssql+pyodbc://username:password@server/database?driver=ODBC+Driver+17+for+SQL+Server
 
-# Redis Ayarları (Canlı ortam için)
-REDIS_URL=redis://localhost:6379/0
-# Veya cloud Redis servisi için:
-# REDIS_URL=redis://username:password@host:port/database
+# SQLite (geliştirme için - DATABASE_URL yoksa otomatik kullanılır)
+# DATABASE_URL=sqlite:///app.db
 
-# CORS Ayarları (Canlı ortam için)
-ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+# ==========================================
+# MAIL AYARLARI (SMTP)
+# ==========================================
+MAIL_SERVER=smtp.office365.com
+MAIL_PORT=587
+MAIL_USE_TLS=True
+MAIL_USERNAME=your-email@domain.com
+MAIL_PASSWORD=your-app-password
+MAIL_DEFAULT_SENDER=your-email@domain.com
+MAIL_BCC_LIST=admin@domain.com;support@domain.com
+MAIL_REPLY_TO=support@domain.com
 
-# Güvenlik Ayarları
-SECRET_KEY=your_very_secure_secret_key_here
-SESSION_COOKIE_SECURE=True
-SESSION_COOKIE_HTTPONLY=True
+# ==========================================
+# UYGULAMA AYARLARI
+# ==========================================
+FLASK_ENV=development
+FLASK_DEBUG=True
+SECRET_KEY=your-super-secret-key-here-change-this
 
-# Rate Limiting Ayarları (Canlı ortam için)
-RATE_LIMIT_DAILY=1000
-RATE_LIMIT_HOURLY=100
-RATE_LIMIT_MINUTE=10 
+# ==========================================
+# CORS AYARLARI
+# ==========================================
+ALLOWED_ORIGINS=http://localhost:3000,https://yourdomain.com
+
+# ==========================================
+# GÜVENLİK AYARLARI
+# ==========================================
+# Rate limiting ayarları
+RATE_LIMIT_DEFAULT=10 per minute
+RATE_LIMIT_RECOMMEND=10 per minute
+RATE_LIMIT_KVKK=20 per minute
+
+# ==========================================
+# LOGLAMA AYARLARI
+# ==========================================
+LOG_LEVEL=INFO
+LOG_FILE=app.log
+
+# ==========================================
+# ÖNEMLİ NOTLAR
+# ==========================================
+# 1. Bu dosyayı .env olarak kopyalayın
+# 2. Tüm değerleri gerçek bilgilerle değiştirin
+# 3. .env dosyası .gitignore'da olduğundan emin olun
+# 4. Production'da FLASK_ENV=production yapın
+# 5. SECRET_KEY'i güçlü bir değerle değiştirin 

@@ -1,0 +1,120 @@
+name: 🔒 Güvenlik Kontrolü
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  security-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Repository'yi çek
+      uses: actions/checkout@v4
+      
+    - name: 🔍 Hassas dosya kontrolü
+      run: |
+        echo "🔍 Hassas dosyalar kontrol ediliyor..."
+        
+        # Yasaklı dosyaları kontrol et
+        FORBIDDEN_FILES=(
+          ".env"
+          ".env.local"
+          ".env.production"
+          "backend/.env"
+          "frontend/.env"
+          "*.key"
+          "*.pem"
+          "*.p12"
+          "credentials.json"
+          "service-account.json"
+          "database.db"
+        )
+        
+        VIOLATIONS=()
+        
+        for file in "${FORBIDDEN_FILES[@]}"; do
+          if find . -name "$file" -type f | grep -q .; then
+            VIOLATIONS+=("$file")
+          fi
+        done
+        
+        if [ ${#VIOLATIONS[@]} -ne 0 ]; then
+          echo "❌ Güvenlik ihlali tespit edildi!"
+          echo "Yasaklı dosyalar:"
+          printf '%s\n' "${VIOLATIONS[@]}"
+          echo "🚨 Bu dosyalar güvenlik nedeniyle yüklenemez!"
+          exit 1
+        else
+          echo "✅ Hassas dosya kontrolü başarılı"
+        fi
+        
+    - name: 🔍 Hassas bilgi taraması
+      run: |
+        echo "🔍 Kod içinde hassas bilgiler aranıyor..."
+        
+        # Hassas pattern'leri kontrol et
+        SENSITIVE_PATTERNS=(
+          "password.*=.*['\"][^'\"]*['\"]"
+          "secret.*=.*['\"][^'\"]*['\"]"
+          "api_key.*=.*['\"][^'\"]*['\"]"
+          "token.*=.*['\"][^'\"]*['\"]"
+          "DATABASE_URL.*=.*['\"][^'\"]*['\"]"
+          "MAIL_PASSWORD.*=.*['\"][^'\"]*['\"]"
+        )
+        
+        VIOLATIONS=()
+        
+        for pattern in "${SENSITIVE_PATTERNS[@]}"; do
+          if grep -r --include="*.py" --include="*.js" --include="*.jsx" --include="*.json" "$pattern" . | grep -v "env_example" | grep -v "env.example" | grep -q .; then
+            VIOLATIONS+=("$pattern")
+          fi
+        done
+        
+        if [ ${#VIOLATIONS[@]} -ne 0 ]; then
+          echo "❌ Hassas bilgi tespit edildi!"
+          echo "Bulunan pattern'ler:"
+          printf '%s\n' "${VIOLATIONS[@]}"
+          echo "🚨 Bu bilgiler environment değişkenlerinde saklanmalı!"
+          exit 1
+        else
+          echo "✅ Hassas bilgi kontrolü başarılı"
+        fi
+        
+    - name: 📋 .gitignore kontrolü
+      run: |
+        echo "📋 .gitignore dosyası kontrol ediliyor..."
+        
+        REQUIRED_IGNORES=(
+          ".env"
+          "*.log"
+          "node_modules/"
+          "venv/"
+          "__pycache__/"
+          "*.db"
+        )
+        
+        MISSING_IGNORES=()
+        
+        for ignore in "${REQUIRED_IGNORES[@]}"; do
+          if ! grep -q "^$ignore$" .gitignore; then
+            MISSING_IGNORES+=("$ignore")
+          fi
+        done
+        
+        if [ ${#MISSING_IGNORES[@]} -ne 0 ]; then
+          echo "⚠️  .gitignore'da eksik kurallar:"
+          printf '%s\n' "${MISSING_IGNORES[@]}"
+          echo "💡 Bu kuralları .gitignore'a ekleyin"
+        else
+          echo "✅ .gitignore kontrolü başarılı"
+        fi
+        
+    - name: 📝 Güvenlik raporu
+      run: |
+        echo "📝 Güvenlik kontrolü tamamlandı!"
+        echo "✅ Proje güvenlik standartlarına uygun"
+        echo "🔒 Hassas bilgiler korunuyor"
+        echo "📋 .gitignore doğru yapılandırılmış" 

@@ -1,0 +1,122 @@
+.popup-overlay {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(30, 30, 40, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(5px);
+}
+
+.popup-content {
+  background: white;
+  padding: 30px 40px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 450px;
+  width: 90%;
+  border-top: 4px solid #764ba2;
+}
+
+.popup-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 18px;
+}
+
+.popup-text {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 36px;
+  line-height: 1.7;
+}
+
+.popup-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+/* Base button style */
+.popup-buttons .btn {
+  border: none;
+  padding: 18px 38px;
+  font-size: 20px;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Primary button ("Devam Et", "Yeniden Başla" in restart_only mode) */
+.popup-buttons .btn-primary {
+  background: linear-gradient(135deg, #6a82fb 0%, #fc5c7d 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+.popup-buttons .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Secondary button ("Yeniden Başla", "Çıkış") */
+.popup-buttons .btn-secondary {
+  background-color: #f1f3f5;
+  color: #555;
+  border: 1px solid #dee2e6;
+}
+.popup-buttons .btn-secondary:hover {
+  background-color: #e9ecef;
+  border-color: #ced4da;
+}
+
+/* KVKK Modal Buttons */
+.kvkk-modal-buttons-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.kvkk-approve-button,
+.kvkk-close-button {
+  padding: 8px 22px;
+  font-size: 15px;
+  border-radius: 7px;
+}
+
+.kvkk-approve-button {
+  background-color: #98acb7;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.kvkk-approve-button:hover {
+  background-color: #7d97b3;
+}
+.kvkk-close-button {
+  background-color: #fff;
+  color: #98acb7;
+  border: 2px solid #98acb7;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+}
+.kvkk-close-button:hover {
+  background-color: #f4f8fa;
+  color: #7d97b3;
+  border-color: #7d97b3;
+} 
+@media (max-width: 500px) {
+  .popup-content{
+    margin-top: -250px !important;
+  }
+}

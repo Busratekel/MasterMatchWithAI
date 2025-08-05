@@ -1,0 +1,92 @@
+# ==========================================
+# NODE.JS & REACT
+# ==========================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# ==========================================
+# BUILD & DEPLOYMENT
+# ==========================================
+build/
+dist/
+.cache/
+coverage/
+
+# ==========================================
+# ENVIRONMENT VARIABLES
+# ==========================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ==========================================
+# IDE & EDITORS
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ==========================================
+# OPERATING SYSTEM
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+desktop.ini
+
+# ==========================================
+# LOGS
+# ==========================================
+*.log
+logs/
+
+# ==========================================
+# TEMPORARY FILES
+# ==========================================
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+
+# ==========================================
+# SECURITY & CREDENTIALS
+# ==========================================
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cert
+credentials.json
+service-account.json
+client_secret.json
+.secrets
+.secret
+
+# ==========================================
+# TESTING
+# ==========================================
+.coverage
+.pytest_cache/
+htmlcov/
+.coverage.*
+
+# ==========================================
+# MISC
+# ==========================================
+*.pid
+*.seed
+*.pid.lock
+.npm
+.eslintcache
+.stylelintcache

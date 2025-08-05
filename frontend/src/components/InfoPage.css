@@ -1,0 +1,253 @@
+/* frontend/src/components/InfoPage.css */
+/* Reset and container styling */
+.info-page-container {
+  position: fixed;
+  top: 32px;
+  right: 32px;
+  left: auto;
+  bottom: auto;
+  z-index: 1000;
+  width: 410px;
+  max-width: calc(100vw - 64px); /* Ekran genişliğine göre maksimum genişlik */
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 28px 28px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  animation: slideIn 0.4s ease-out;
+}
+
+/* Çok küçük ekranlarda responsive davranış */
+@media (max-width: 768px) {
+  .info-page-container {
+    top: 8px;
+    right: 8px;
+    left: 8px;
+    width: auto;
+    max-width: none;
+    min-width: 0;
+    padding: 12px 8px 12px 8px;
+    font-size: 0.95rem;
+    border-radius: 12px;
+    z-index: 1000;
+  }
+  .info-title {
+    font-size: 1.1rem;
+  }
+  .info-text {
+    font-size: 0.95rem;
+  }
+}
+@media (max-width: 600px) {
+  .info-page-container {
+    top: 6px;
+    right: 6px;
+    left: 6px;
+    width: auto;
+    max-width: none;
+    min-width: 0;
+    padding: 8px 4px 8px 4px;
+    font-size: 0.9rem;
+    border-radius: 10px;
+    z-index: 1000;
+  }
+  .info-title {
+    font-size: 1rem;
+  }
+  .info-text {
+    font-size: 0.85rem;
+  }
+}
+@media (max-width: 400px) {
+  .info-page-container {
+    padding: 2px 1px 2px 1px;
+    border-radius: 6px;
+  }
+  .info-title {
+    font-size: 0.85rem;
+  }
+  .info-text {
+    font-size: 0.7rem;
+  }
+}
+@media (max-width: 700px) {
+  .info-page-container {
+    position: fixed !important;
+    top: 8px !important;
+    left: 8px !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 90vw !important;
+    min-width: 0 !important;
+    max-width: 220px !important;
+    z-index: 5000 !important;
+    font-size: 0.85rem !important;
+    padding: 8px 4px !important;
+  }
+  .info-logo-container {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  .info-logo {
+    width: 24px !important;
+    height: 24px !important;
+  }
+  .info-title {
+    font-size: 0.70rem !important;
+  }
+  .info-text {
+    font-size: 0.8rem !important;
+  }
+}
+
+.info-icon-container {
+  flex-shrink: 0;
+  width: 40px; /* Logo için sabit genişlik */
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-icon {
+  font-size: 1.5rem;
+  color: #e9ecef; /* İkon rengini güncelle */
+}
+
+.info-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.info-text-content {
+  flex-grow: 1;
+}
+
+.info-title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.info-text {
+  font-size: 1.2rem;
+  color: #374151;
+  line-height: 1.6;
+  margin: 0;
+  font-weight: 400;
+}
+
+.close-button {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: #adb5bd;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.close-button:hover {
+  color: #343a40;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Header section */
+.info-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 12px;
+}
+
+.info-logo-container {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(33,134,174,0.12);
+}
+
+.info-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+/* Body section */
+.info-body {
+  margin-top: 0;
+}
+
+/* Footer and button */
+.info-footer {
+  padding: 15px 20px;
+  background-color: #f8f9fa;
+  text-align: right;
+  margin-top: auto;
+  border-top: 1px solid #e9ecef;
+}
+
+.info-close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  color: #adb5bd;
+  cursor: pointer;
+  z-index: 10;
+  padding: 0;
+  line-height: 1;
+}
+.info-close-btn:hover {
+  color: #343a40;
+}
+
+/* Hide all old, irrelevant styles that might conflict */
+.info-content,
+.recommendations-list,
+.pillow-card,
+.pillow-link,
+.pillow-image-container,
+.pillow-image,
+.pillow-info,
+.pillow-name,
+.pillow-details,
+.detail-tag,
+.pillow-cta,
+.arrow-icon,
+.restart-button-container,
+.success-header,
+.success-icon,
+.success-title,
+.success-subtitle,
+.recommendations,
+.recommendations-title,
+.analysis-section,
+.analysis-grid,
+.analysis-item,
+.analysis-label,
+.analysis-value,
+.action-buttons,
+.restart-icon {
+  display: none;
+} 

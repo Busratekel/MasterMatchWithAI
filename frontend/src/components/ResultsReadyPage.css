@@ -1,0 +1,211 @@
+html, body, #root, .App, .results-root {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  background: #c4d8df !important;
+}
+
+.results-page-center {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fff !important;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.results-logo {
+  display: block;
+  margin: 0 auto 18px auto;
+  width: 200px;
+  height: auto;
+}
+
+.results-ready-title {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 auto 0 auto !important;
+  text-align: center;
+  padding-top: 0 !important;
+  margin-bottom: 18px;
+}
+
+.results-ready-subtitle {
+  font-size: 1.3rem;
+  color: #374151;
+  font-weight: 500;
+  margin: 18px auto 40px auto;
+  text-align: center;
+  max-width: 700px;
+  padding-top: 0 !important;
+}
+
+.icon-check {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: #28a745;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0 auto 25px;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+}
+
+.results-ready-text {
+  font-size: 1.1rem;
+  color: #6c757d;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.show-results-btn {
+  padding: 15px 40px;
+  font-size: 1.1rem;
+  width: 80%;
+}
+
+.result-analysis {
+  font-size: 1.2rem;
+  color: #3a4a5a;
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.result-analysis-list {
+  max-width: 800px;
+  margin: 0 auto 40px auto !important;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+@media (max-width: 1366px) {
+  .result-analysis-list{
+    margin-top: -10px !important;
+  }
+  .result-analysis-item{
+    padding-bottom: 10px !important;
+    margin-bottom: 10px !important;
+  }
+  .results-page-center{
+    margin-top: -10px !important;
+  }
+  .results-ready-title{
+    font-size: 1.0rem !important;
+    margin-top: -10px !important;
+    margin-bottom: 0px !important;
+  }
+  .show-results-button{
+    margin-top: 0px !important;
+  }
+  .result-analysis-question{
+    font-size: 1.0rem !important;
+  }
+}
+.result-analysis-item {
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0 0 32px 0;
+  margin: 0 0 32px 0;
+  border-bottom: 1.5px solid #e5e7eb;
+}
+
+.result-analysis-item:last-child {
+  border-bottom: none;
+}
+
+.result-analysis-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+}
+
+.result-analysis-question {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.result-analysis-answer {
+  font-size: 1.2rem;
+  color: #000306;
+  font-weight: 500;
+  text-align: left;
+  margin-bottom: 8px;
+  margin-top: 0;
+}
+
+.result-analysis-comment {
+  font-size: 1.2rem;
+  color: #2c3c52;
+  background: none;
+  padding: 0;
+  margin-top: 0;
+  font-style: normal;
+  border: none;
+  text-align: left;
+}
+.arrow-animate {
+  display: flex;
+  align-items: center;
+  animation: arrow-move 1s infinite alternate ease-in-out;
+}
+
+@keyframes arrow-move {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(10px); }
+}
+
+.show-results-button {
+  background: linear-gradient(90deg, #1976d2 0%, #4fc3f7 100%);
+  color: #fff;
+  border: none;
+  padding: 7px 56px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  border-radius: 24px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  box-shadow: none;
+  margin: 12px auto 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+
+.show-results-button:hover {
+  background: linear-gradient(90deg, #4fc3f7 0%, #1976d2 100%);
+  transform: scale(1.06);
+}
+
+.email-value-box{
+  min-width: 50px;
+  max-width: 100%;
+  padding: 8px 2px;
+  border: 1.5px solid #e0e0e0;;
+  border-radius: 10px;
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: black;
+  background: #fff;
+  text-align: center;
+}

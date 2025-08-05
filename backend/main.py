@@ -1,16 +1,42 @@
+# -*- coding: utf-8 -*-
+import sys
+import os
+
+# Python encoding ayarları
+if sys.platform.startswith('win'):
+    # Windows'ta encoding ayarları
+    import locale
+    try:
+        locale.setlocale(locale.LC_ALL, 'Turkish_Turkey.1254')
+    except:
+        try:
+            locale.setlocale(locale.LC_ALL, 'tr_TR.UTF-8')
+        except:
+            pass
+    
+    # Console encoding'i UTF-8 yap
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8')
+    if hasattr(sys.stderr, 'reconfigure'):
+        sys.stderr.reconfigure(encoding='utf-8')
+
+# Environment variables for encoding
+os.environ['PYTHONIOENCODING'] = 'utf-8'
+os.environ['PYTHONUTF8'] = '1'
+
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import traceback
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 import json
 import hashlib
-import os
 import warnings
 from dotenv import load_dotenv
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import redis
+# Redis import'u kaldırıldı - artık kullanılmıyor
+from flask_mail import Mail, Message
 
 # Flask-Limiter uyarısını bastır (geliştirme ortamı için)
 warnings.filterwarnings("ignore", message="Using the in-memory storage")
@@ -22,57 +48,43 @@ app = Flask(__name__)
 app = Flask(__name__, static_folder='public', static_url_path='/public')
 
 # CORS Ayarları - Ortama göre
+from flask_cors import CORS
+import os
+
 def configure_cors():
-    """Ortama göre CORS ayarlarını yapılandırır"""
     environment = os.getenv('FLASK_ENV', 'development')
-    # Eğer FLASK_ENV tanımlıysa: environment = 'production' veya 'development'
-    # Eğer tanımlı değilse: environment = 'development'
-    
     if environment == 'production':
-        # Canlı ortam - Sadece belirli domainler
-        allowed_origins = os.getenv('ALLOWED_ORIGINS', 'https://yourdomain.com')
-        origins = [origin.strip() for origin in allowed_origins.split(',')]
-        CORS(app, origins=origins, supports_credentials=True)
+        # Sadece canlı domain izinli
+        CORS(app, origins=['https://mastermatch.doquhome.com.tr'], supports_credentials=True)
     else:
-        # Geliştirme ortamı - Localhost
-        CORS(app, origins=["http://localhost:3000"])
+        # Sadece localhost izinli
+        CORS(app, origins=['http://localhost:3000'], supports_credentials=True)
 
 configure_cors()
 
 # Veritabanı Yapılandırması
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+database_url = os.getenv('DATABASE_URL')
+if not database_url:
+    # Eğer DATABASE_URL yoksa SQLite kullan (geliştirme için)
+    database_url = 'sqlite:///app.db'
+print(f"Kullanılan veritabanı URL: {database_url}")
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# Rate Limiting Konfigürasyonu - Canlı/Geliştirme ortamına göre
+# Rate Limiting Konfigürasyonu - In-memory storage kullan
 def create_limiter():
-    """Ortama göre rate limiter oluşturur"""
+    """In-memory rate limiter oluşturur"""
     environment = os.getenv('FLASK_ENV', 'development')
     
     if environment == 'production':
-        # Canlı ortam - Redis kullan
-        redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
-        try:
-            redis_client = redis.from_url(redis_url)
-            redis_client.ping()  # Redis bağlantısını test et
-            
-            return Limiter(
-                app=app,
-                key_func=get_remote_address,
-                storage_uri=redis_url,
-                default_limits=["1000 per day", "100 per hour", "10 per minute"],
-                strategy="fixed-window-elastic-expiry"
-            )
-        except Exception as e:
-            print(f"Redis bağlantı hatası: {e}")
-            print("In-memory storage'a geri dönülüyor...")
-            # Redis bağlantısı başarısız olursa in-memory kullan
-            return Limiter(
-                app=app,
-                key_func=get_remote_address,
-                default_limits=["500 per day", "50 per hour", "5 per minute"]
-            )
+        # Canlı ortam - In-memory storage kullan
+        return Limiter(
+            app=app,
+            key_func=get_remote_address,
+            default_limits=["500 per day", "50 per hour", "5 per minute"]
+        )
     else:
         # Geliştirme ortamı - Rate limiting devre dışı
         return Limiter(
@@ -83,6 +95,40 @@ def create_limiter():
 
 limiter = create_limiter()
 
+# .env'den SMTP ve mail ayarlarını oku
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.office365.com')
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() == 'true'
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
+MAIL_BCC_LIST = os.getenv('MAIL_BCC_LIST', '')
+MAIL_REPLY_TO = os.getenv('MAIL_REPLY_TO', app.config['MAIL_DEFAULT_SENDER'])
+
+mail = Mail(app)
+
+# Mail gönderme fonksiyonu
+def send_analysis_email(email, mail_content, from_address=None, bcc_emails=None):
+    try:
+        msg = Message(
+            subject='Yastık Analiz Raporunuz - DoquHome',
+            sender=from_address or app.config['MAIL_DEFAULT_SENDER'],
+            recipients=[email]
+        )
+        msg.reply_to = MAIL_REPLY_TO
+        # BCC env'den veya parametreden
+        bcc_final = bcc_emails or MAIL_BCC_LIST
+        if bcc_final:
+            msg.bcc = [e.strip() for e in bcc_final.split(';') if e.strip()]
+        
+        # Direkt gelen HTML içeriği kullan
+        msg.html = mail_content
+        mail.send(msg)
+        return True
+    except Exception as e:
+        print(f"Mail gönderme hatası: {e}")
+        return False
+
 # --- Veritabanı Modelleri ---
 class KvkkMetin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -90,7 +136,7 @@ class KvkkMetin(db.Model):
     versiyon = db.Column(db.String(20), nullable=False)
     hash = db.Column(db.String(64), nullable=False)  # SHA256 hash
     aktif = db.Column(db.Boolean, default=True)
-    olusturma_tarihi = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    olusturma_tarihi = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     icerik = db.Column(db.UnicodeText, nullable=False)
 
 class KvkkOnay(db.Model):
@@ -98,7 +144,7 @@ class KvkkOnay(db.Model):
     log_id = db.Column(db.Integer, nullable=False)
     kvkk_metin_id = db.Column(db.Integer, nullable=False)
     ip_adresi = db.Column(db.String(50))
-    onay_tarihi = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    onay_tarihi = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     onay_durumu = db.Column(db.String(10), default='1')
     onay_yontemi = db.Column(db.String(50), default='popup')
 
@@ -123,20 +169,157 @@ class KullaniciLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ad = db.Column(db.String(100))
     soyad = db.Column(db.String(100))
+    email = db.Column(db.String(100))
     ip_adresi = db.Column(db.String(50))
     yas = db.Column(db.String(10))
     boy = db.Column(db.String(10))
     kilo = db.Column(db.String(10))
     vki = db.Column(db.String(10))
     cevaplar = db.Column(db.Text)  # Tüm cevaplar JSON olarak
-    tarih = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    tarih = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     incelendi_mi = db.Column(db.Boolean, default=False)
     incelenen_urunler = db.Column(db.Text, nullable=True)
+    analiz_sonucu_alindi_mi = db.Column(db.Boolean, default=False)  # Analiz sonucu popup ile alındı mı
 
 # --- Sabit Veriler ---
 SORU_AGIRLIKLARI = {
     'sertlik': 1, 'bmi': 2, 'yas': 2, 'uyku_pozisyonu': 3, 'dogal_malzeme': 4, 'tempo': 5, 'agri_bolge': 6, 'uyku_düzeni': 7,
 }
+
+# --- Yardımcı Fonksiyonlar ---
+def normalize_turkish(text):
+    """Türkçe karakterleri normalize eder"""
+    replacements = {
+        'ı': 'i', 'ğ': 'g', 'ü': 'u', 'ş': 's', 'ö': 'o', 'ç': 'c',
+        'İ': 'I', 'Ğ': 'G', 'Ü': 'U', 'Ş': 'S', 'Ö': 'O', 'Ç': 'C'
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    return text
+
+def calculate_pillow_recommendations(responses):
+    """Yastık önerilerini hesaplar - tekrar kullanılabilir fonksiyon"""
+    yastiklar = Yastik.query.all()
+    if not yastiklar:
+        return []
+    
+    # BASİT ALGORİTMA - Her yastık için puan hesapla
+    yastik_puanlari = []
+    
+    for yastik in yastiklar:
+        toplam_puan = 0
+        # Her soru için puan hesapla
+        for soru_key, agirlik in SORU_AGIRLIKLARI.items():
+            # Kullanıcı cevabını al
+            kullanici_cevap = None
+            if soru_key == 'yas':
+                yas_gercek = responses.get('bmi_age', {}).get('yas_gercek')
+                if yas_gercek is not None:
+                    yas_int = int(yas_gercek)
+                    if yas_int <= 7:
+                        kullanici_cevap = "0-7"
+                    else:
+                        kullanici_cevap = "7+"
+                else:
+                    kullanici_cevap = None
+            else:
+                kullanici_cevap = responses.get(soru_key)
+            
+            if not kullanici_cevap:
+                continue
+            
+            # Yastık özelliğini al
+            yastik_ozellik = getattr(yastik, soru_key, None)
+            if not yastik_ozellik:
+                continue
+            
+            # Eşleşme kontrolü
+            if isinstance(kullanici_cevap, list):
+                # Çoklu seçim için
+                for cevap in kullanici_cevap:
+                    if str(cevap).lower() in str(yastik_ozellik).lower():
+                        toplam_puan += agirlik
+                        break
+            else:
+                # Tek seçim için
+                kullanici_cevap_str = str(kullanici_cevap).lower().strip()
+                yastik_ozellik_str = str(yastik_ozellik).lower().strip()
+                
+                kullanici_cevap_normalized = normalize_turkish(kullanici_cevap_str)
+                yastik_ozellik_normalized = normalize_turkish(yastik_ozellik_str)
+                
+                if kullanici_cevap_normalized in yastik_ozellik_normalized:
+                    toplam_puan += agirlik
+        
+        # BMI için özel kontrol
+        bmi_cevap = responses.get('bmi')
+        if bmi_cevap and yastik.bmi:
+            bmi_cevap_str = str(bmi_cevap).lower().strip()
+            bmi_yastik_str = str(yastik.bmi).lower().strip()
+            
+            bmi_cevap_normalized = normalize_turkish(bmi_cevap_str)
+            bmi_yastik_normalized = normalize_turkish(bmi_yastik_str)
+            
+            if bmi_cevap_normalized in bmi_yastik_normalized:
+                toplam_puan += SORU_AGIRLIKLARI.get('bmi', 2)
+
+        # Yastık ve puanını listeye ekle
+        yastik_puanlari.append({
+            'yastik': yastik.to_dict(),
+            'puan': toplam_puan
+        })
+    
+    # Yaş kontrolü - 0-7 yaş seçildiyse özel algoritma
+    yas_cevap = responses.get('bmi_age', {}).get('yas_gercek')
+    if yas_cevap and int(yas_cevap) < 7:
+        # 0-7 yaş için özel algoritma
+        bebek_yastiklar = []
+        onemli_eslesenler = []
+        diger_yastiklar = []
+        
+        for item in yastik_puanlari:
+            yastik_yas = item['yastik'].get('yas', '')
+            yastik_isim = item['yastik'].get('isim', '').lower()
+            if yastik_yas and ('0-7' in str(yastik_yas).lower() or 'bebek' in yastik_isim):
+                bebek_yastiklar.append(item)
+            else:
+                onemli_eslesme_var = False
+                for soru_key, agirlik in SORU_AGIRLIKLARI.items():
+                    if agirlik >= 5:
+                        kullanici_cevap = responses.get(soru_key)
+                        if kullanici_cevap:
+                            yastik_ozellik = item['yastik'].get(soru_key, '')
+                            if yastik_ozellik:
+                                kullanici_normalized = normalize_turkish(str(kullanici_cevap).lower().strip())
+                                yastik_normalized = normalize_turkish(str(yastik_ozellik).lower().strip())
+                                if kullanici_normalized in yastik_normalized:
+                                    onemli_eslesme_var = True
+                                    break
+                if onemli_eslesme_var:
+                    onemli_eslesenler.append(item)
+                else:
+                    diger_yastiklar.append(item)
+        
+        bebek_yastiklar.sort(key=lambda x: x['puan'], reverse=True)
+        onemli_eslesenler.sort(key=lambda x: x['puan'], reverse=True)
+        diger_yastiklar.sort(key=lambda x: x['puan'], reverse=True)
+        
+        sonuc_listesi = []
+        sonuc_listesi.extend(bebek_yastiklar[:2])
+        sonuc_listesi.extend(onemli_eslesenler[:2])
+        sonuc_listesi.extend(diger_yastiklar[:1])
+        yastik_puanlari = sonuc_listesi[:5]
+        
+        # Debug için puanları yazdır
+        print("=== 0-7 YAŞ ALGORİTMASI (2 bebek + 2 önemli + 1 diğer) ===")
+        for i, item in enumerate(yastik_puanlari):
+            print(f"{i+1}. {item['yastik']['isim']} - Puan: {item['puan']}")
+    else:
+        # 7+ yaş için normal puan sıralaması
+        yastik_puanlari.sort(key=lambda x: x['puan'], reverse=True)
+    
+    # İlk 5 yastığı döndür
+    return [item['yastik'] for item in yastik_puanlari[:5]]
 
 QUESTIONS = [
     {
@@ -161,16 +344,16 @@ def home():
         'message': 'Pillow Selection Robot API',
         'version': '1.0',
         'endpoints': [
-            '/questions',
-            '/yastiklar', 
-            '/recommend',
-            '/kvkk_metin',
-            '/kvkk_onay_ekle',
-            '/health'
+            '/api/questions',
+            '/api/yastiklar', 
+            '/api/recommend',
+            '/api/kvkk_metin',
+            '/api/kvkk_onay_ekle',
+            '/api/health'
         ]
     })
 
-@app.route('/health')
+@app.route('/api/health')
 def health_check():
     """Sistem sağlık kontrolü endpoint'i"""
     try:
@@ -178,34 +361,25 @@ def health_check():
         with db.engine.connect() as conn:
             conn.execute(db.text('SELECT 1'))
         
-        # Redis bağlantısını test et (sadece production'da)
+        # Redis artık kullanılmıyor - in-memory storage kullanılıyor
         environment = os.getenv('FLASK_ENV', 'development')
-        if environment == 'production':
-            try:
-                redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
-                redis_client = redis.from_url(redis_url)
-                redis_client.ping()
-                redis_status = 'healthy'
-            except Exception as e:
-                redis_status = f'unhealthy: {str(e)}'
-        else:
-            redis_status = 'not_configured'
+        redis_status = 'not_used'
         
         return jsonify({
             'status': 'healthy',
             'database': 'healthy',
             'redis': redis_status,
             'environment': environment,
-            'timestamp': datetime.now(UTC).isoformat()
+            'timestamp': datetime.now(timezone.utc).isoformat()
         }), 200
     except Exception as e:
         return jsonify({
             'status': 'unhealthy',
             'error': str(e),
-            'timestamp': datetime.now(UTC).isoformat()
+            'timestamp': datetime.now(timezone.utc).isoformat()
         }), 500
 
-@app.route('/questions')
+@app.route('/api/questions')
 def get_questions():
     try:
         sorted_questions = sorted(QUESTIONS, key=lambda x: x['order'])
@@ -214,7 +388,7 @@ def get_questions():
         print(f"Soru getirme hatası: {e}")
         return jsonify(error="Sorular yüklenirken bir hata oluştu."), 500
 
-@app.route('/yastiklar')
+@app.route('/api/yastiklar')
 def get_yastiklar():
     try:
         yastiklar = Yastik.query.all()
@@ -223,7 +397,7 @@ def get_yastiklar():
         print(f"Yastık getirme hatası: {e}")
         return jsonify(error="Yastıklar yüklenirken bir hata oluştu."), 500
 
-@app.route('/recommend', methods=['POST'])
+@app.route('/api/recommend', methods=['POST'])
 @limiter.limit("10 per minute")  # Her IP için dakikada 10 istek
 def recommend():
     try:
@@ -257,153 +431,11 @@ def recommend():
         if not responses:
             return jsonify(error="Cevaplar alınamadı."), 400
 
-        yastiklar = Yastik.query.all()
-        if not yastiklar:
+        # Yeni fonksiyonu kullanarak önerileri hesapla
+        recommendations = calculate_pillow_recommendations(responses)
+        
+        if not recommendations:
             return jsonify(error="Veritabanında yastık bulunamadı."), 500
-        
-        # BASİT ALGORİTMA - Her yastık için puan hesapla
-        yastik_puanlari = []
-        
-
-        
-        for yastik in yastiklar:
-            toplam_puan = 0
-            # Her soru için puan hesapla
-            for soru_key, agirlik in SORU_AGIRLIKLARI.items():
-                # Kullanıcı cevabını al
-                kullanici_cevap = None
-                if soru_key == 'yas':
-                    yas_gercek = responses.get('bmi_age', {}).get('yas_gercek')
-                    if yas_gercek:
-                        yas_int = int(yas_gercek)
-                        if yas_int >= 7:
-                            kullanici_cevap = "7+"
-                        else:
-                            kullanici_cevap = "0-7"
-                    else:
-                        kullanici_cevap = None
-                else:
-                    kullanici_cevap = responses.get(soru_key)
-                
-                if not kullanici_cevap:
-                    continue
-                
-                # Yastık özelliğini al
-                yastik_ozellik = getattr(yastik, soru_key, None)
-                if not yastik_ozellik:
-                    continue
-                
-                # Eşleşme kontrolü - Türkçe karakterleri normalize et
-                kullanici_cevap_str = str(kullanici_cevap).lower().strip()
-                yastik_ozellik_str = str(yastik_ozellik).lower().strip()
-                
-                # Türkçe karakterleri normalize et
-                def normalize_turkish(text):
-                    replacements = {
-                        'ı': 'i', 'ğ': 'g', 'ü': 'u', 'ş': 's', 'ö': 'o', 'ç': 'c',
-                        'İ': 'I', 'Ğ': 'G', 'Ü': 'U', 'Ş': 'S', 'Ö': 'O', 'Ç': 'C'
-                    }
-                    for old, new in replacements.items():
-                        text = text.replace(old, new)
-                    return text
-                
-                kullanici_cevap_normalized = normalize_turkish(kullanici_cevap_str)
-                yastik_ozellik_normalized = normalize_turkish(yastik_ozellik_str)
-                
-                # Eşleşme kontrolü - normalize edilmiş metinlerle
-                if kullanici_cevap_normalized in yastik_ozellik_normalized:
-                    toplam_puan += agirlik
-            
-            # BMI için özel kontrol
-            bmi_cevap = responses.get('bmi')
-            if bmi_cevap and yastik.bmi:
-                bmi_cevap_str = str(bmi_cevap).lower().strip()
-                bmi_yastik_str = str(yastik.bmi).lower().strip()
-                
-                # Türkçe karakterleri normalize et
-                def normalize_turkish(text):
-                    replacements = {
-                        'ı': 'i', 'ğ': 'g', 'ü': 'u', 'ş': 's', 'ö': 'o', 'ç': 'c',
-                        'İ': 'I', 'Ğ': 'G', 'Ü': 'U', 'Ş': 'S', 'Ö': 'O', 'Ç': 'C'
-                    }
-                    for old, new in replacements.items():
-                        text = text.replace(old, new)
-                    return text
-                
-                bmi_cevap_normalized = normalize_turkish(bmi_cevap_str)
-                bmi_yastik_normalized = normalize_turkish(bmi_yastik_str)
-                
-                if bmi_cevap_normalized in bmi_yastik_normalized:
-                    toplam_puan += SORU_AGIRLIKLARI.get('bmi', 2)
-            
-            # Yastık ve puanını listeye ekle
-            yastik_puanlari.append({
-                'yastik': yastik.to_dict(),
-                'puan': toplam_puan
-            })
-        
-        # Yaş kontrolü - 0-7 yaş seçildiyse özel algoritma
-        yas_cevap = responses.get('bmi_age', {}).get('yas_gercek')
-        if yas_cevap and int(yas_cevap) < 7:
-            # 0-7 yaş için özel algoritma
-            bebek_yastiklar = []  # Bebek yastıkları listesi
-            onemli_eslesenler = []  # Önemli eşleşen (bebek olmayan) yastıklar
-            diger_yastiklar = []  # Diğer yastıklar
-            
-            for item in yastik_puanlari:
-                yastik_yas = item['yastik'].get('yas', '')
-                yastik_isim = item['yastik'].get('isim', '').lower()
-                # Bebek yastığı kontrolü
-                if yastik_yas and ('0-7' in str(yastik_yas).lower() or 'bebek' in yastik_isim):
-                    bebek_yastiklar.append(item)
-                else:
-                    # Önemli sorularda (ağırlık 5+) tam eşleşme var mı kontrolü
-                    onemli_eslesme_var = False
-                    for soru_key, agirlik in SORU_AGIRLIKLARI.items():
-                        if agirlik >= 5:  # Önemli sorular
-                            kullanici_cevap = responses.get(soru_key)
-                            if kullanici_cevap:
-                                yastik_ozellik = item['yastik'].get(soru_key, '')
-                                if yastik_ozellik:
-                                    # Türkçe karakterleri normalize et
-                                    def normalize_turkish(text):
-                                        replacements = {
-                                            'ı': 'i', 'ğ': 'g', 'ü': 'u', 'ş': 's', 'ö': 'o', 'ç': 'c',
-                                            'İ': 'I', 'Ğ': 'G', 'Ü': 'U', 'Ş': 'S', 'Ö': 'O', 'Ç': 'C'
-                                        }
-                                        for old, new in replacements.items():
-                                            text = text.replace(old, new)
-                                        return text
-                                    kullanici_normalized = normalize_turkish(str(kullanici_cevap).lower().strip())
-                                    yastik_normalized = normalize_turkish(str(yastik_ozellik).lower().strip())
-                                    if kullanici_normalized in yastik_normalized:
-                                        onemli_eslesme_var = True
-                                        break
-                    if onemli_eslesme_var:
-                        onemli_eslesenler.append(item)
-                    else:
-                        diger_yastiklar.append(item)
-            # Her grubu puanına göre sırala
-            bebek_yastiklar.sort(key=lambda x: x['puan'], reverse=True)
-            onemli_eslesenler.sort(key=lambda x: x['puan'], reverse=True)
-            diger_yastiklar.sort(key=lambda x: x['puan'], reverse=True)
-            # Sonuç listesi: 2 bebek + 2 önemli eşleşen + 1 diğer
-            sonuc_listesi = []
-            sonuc_listesi.extend(bebek_yastiklar[:2])
-            sonuc_listesi.extend(onemli_eslesenler[:2])
-            sonuc_listesi.extend(diger_yastiklar[:1])
-            # Toplamda 5 yastık olacak şekilde kırp
-            yastik_puanlari = sonuc_listesi[:5]
-            # Debug için puanları yazdır
-            print("=== 0-7 YAŞ ALGORİTMASI (2 bebek + 2 önemli + 1 diğer) ===")
-            for i, item in enumerate(yastik_puanlari):
-                print(f"{i+1}. {item['yastik']['isim']} - Puan: {item['puan']}")
-        else:
-            # 7+ yaş için normal puan sıralaması
-            yastik_puanlari.sort(key=lambda x: x['puan'], reverse=True)
-        
-        # İlk 5 yastığı öner
-        recommendations = [item['yastik'] for item in yastik_puanlari[:5]]
         
         return jsonify(recommendations=recommendations, log_id=log.id)
 
@@ -412,7 +444,7 @@ def recommend():
         traceback.print_exc()
         return jsonify(error="Sunucu hatası."), 500
 
-@app.route('/kvkk_onay_ekle', methods=['POST'])
+@app.route('/api/kvkk_onay_ekle', methods=['POST'])
 @limiter.limit("20 per minute")  # Her IP için dakikada 20 istek
 def kvkk_onay_ekle():
     try:
@@ -424,14 +456,14 @@ def kvkk_onay_ekle():
         ip_adresi = data.get('ip_adresi', request.remote_addr)
         onay_durumu = data.get('onay_durumu', 'kabul')
         onay_yontemi = data.get('onay_yontemi', 'popup')
-        onay_tarihi = datetime.now(UTC)
+        onay_tarihi = datetime.now(timezone.utc)
         onay = KvkkOnay(
             log_id=log_id,
             kvkk_metin_id=kvkk_metin_id,
             ip_adresi=ip_adresi,
             onay_tarihi=onay_tarihi,
             onay_durumu=onay_durumu,
-            onay_yontemi=onay_yontemi
+            onay_yontemi=onay_yontemi,
         )
         db.session.add(onay)
         db.session.commit()
@@ -441,7 +473,7 @@ def kvkk_onay_ekle():
         traceback.print_exc()
         return jsonify({'error': 'Sunucu hatası'}), 500
 
-@app.route('/kvkk_aktif_pdf')
+@app.route('/api/kvkk_aktif_pdf')
 def kvkk_aktif_pdf():
     try:
         # Aktif KVKK metnini bul
@@ -474,7 +506,7 @@ def kvkk_aktif_pdf():
         traceback.print_exc()
         return jsonify({'error': 'Sunucu hatası'}), 500
 
-@app.route('/log_urun_inceleme', methods=['POST'])
+@app.route('/api/log_urun_inceleme', methods=['POST'])
 def log_urun_inceleme():
     try:
         data = request.get_json()
@@ -482,7 +514,7 @@ def log_urun_inceleme():
         urun_ismi = data.get('urun_ismi')
         if not log_id or not urun_ismi:
             return jsonify({'error': 'log_id ve urun_ismi zorunlu!'}), 400
-        log = KullaniciLog.query.get(log_id)
+        log = db.session.get(KullaniciLog, log_id)
         if not log:
             return jsonify({'error': 'Log bulunamadı!'}), 404
         log.incelendi_mi = True
@@ -500,7 +532,7 @@ def log_urun_inceleme():
         traceback.print_exc()
         return jsonify({'error': 'Sunucu hatası'}), 500
 
-@app.route('/kvkk_metin', methods=['GET'])
+@app.route('/api/kvkk_metin', methods=['GET'])
 def get_kvkk_metin():
     kvkk = KvkkMetin.query.filter_by(aktif=True).first()
     if not kvkk:
@@ -511,9 +543,76 @@ def get_kvkk_metin():
         'icerik': kvkk.icerik
     })
 
-# Uygulamayı geliştirme modunda çalıştırmak için
+@app.route('/api/save-mail', methods=['POST'])
+def save_mail():
+    data = request.json
+    email = data.get('email')
+    log_id = data.get('logId')
+    analiz_alindi_mi = data.get('analizAlindiMi', False)
+    from_address = data.get('from_address')
+    bcc_emails = data.get('bcc_emails')
+    analysis_html = data.get('analysisHtml')
+
+    if not log_id:
+        return jsonify({'error': 'logId zorunlu!'}), 400
+
+    log = db.session.get(KullaniciLog, log_id)
+    if not log:
+        return jsonify({'error': 'Log bulunamadı!'}), 404
+
+    if email:
+        log.email = email
+        
+        # Kullanıcı cevaplarını al
+        responses = json.loads(log.cevaplar) if log.cevaplar else {}
+        
+        # Yeni fonksiyonu kullanarak önerileri hesapla
+        recommendations = calculate_pillow_recommendations(responses)
+        
+        if recommendations:
+            # Yastık önerilerini HTML'e ekle
+            yastik_html = '<h2>Size Özel Yastık Önerileriniz</h2>'
+            for i, yastik in enumerate(recommendations, 1):
+                yastik_html += f'''
+                <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
+                    <h3 style="color: #1976d2; margin-top: 0;">{i}. {yastik.get('isim', 'Yastık')}</h3>
+                    <p><strong>Özellikler:</strong></p>
+                    <ul style="margin: 5px 0;">
+                        {f'<li><strong>Sertlik:</strong> {yastik.get("sertlik", "")}</li>' if yastik.get("sertlik") else ''}
+                        {f'<li><strong>Uyku Pozisyonu:</strong> {yastik.get("uyku_pozisyonu", "")}</li>' if yastik.get("uyku_pozisyonu") else ''}
+                        {f'<li><strong>Doğal Malzeme:</strong> {yastik.get("dogal_malzeme", "")}</li>' if yastik.get("dogal_malzeme") else ''}
+                        {f'<li><strong>Uyku Düzeni:</strong> {yastik.get("uyku_düzeni", "")}</li>' if yastik.get("uyku_düzeni") else ''}
+                        {f'<li><strong>Ağrı Bölge:</strong> {yastik.get("agri_bolge", "")}</li>' if yastik.get("agri_bolge") else ''}
+                        {f'<li><strong>Yaş:</strong> {yastik.get("yas", "")}</li>' if yastik.get("yas") else ''}
+                        {f'<li><strong>Tempo:</strong> {yastik.get("tempo", "")}</li>' if yastik.get("tempo") else ''}
+                    </ul>
+                    {f'<p><strong>Link:</strong> <a href="{yastik.get("link", "")}" style="color: #1976d2;">Ürünü İncele</a></p>' if yastik.get("link") else ''}
+                </div>
+                '''
+            # Analiz ve yastık önerilerini birleştir
+            complete_mail_content = f'''
+            {analysis_html or ''}
+            <hr style="margin: 30px 0; border: 1px solid #ddd;">
+            {yastik_html}
+            '''
+        else:
+            complete_mail_content = analysis_html or log.cevaplar
+        
+        mail_sent = send_analysis_email(email, complete_mail_content, from_address, bcc_emails)
+        if not mail_sent:
+            return jsonify({'error': 'Mail gönderilemedi!'}), 500
+    
+    log.analiz_sonucu_alindi_mi = analiz_alindi_mi
+    db.session.commit()
+    
+    return jsonify({'success': True})
+# Uygulamayı çalıştırmak için
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    print("🚀 Backend başlatılıyor... http://localhost:5000")
-    app.run(debug=True, port=5000, host='0.0.0.0') 
+    environment = os.getenv('FLASK_ENV', 'development')
+    if environment != 'production':
+        print("🚀 Backend geliştirme modunda başlatılıyor... http://localhost:5001")
+        app.run(debug=True, host='0.0.0.0', port=5001)
+    else:
+        print("Production ortamı: Lütfen bir WSGI sunucusu ile başlatın (örn. waitress, IIS, vs.)") 

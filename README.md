@@ -1,195 +1,169 @@
-# Pillow Selection Robot
+# 🛏️ Yastık Seçim Robotu
 
-Yastık seçimi için akıllı öneri sistemi. Bu proje, kullanıcıların ihtiyaçlarına göre en uygun yastığı öneren bir web uygulamasıdır.
+Flask backend ve React frontend ile geliştirilmiş yastık öneri sistemi.
 
-## 🚀 Özellikler
+## 🚀 Hızlı Başlangıç
 
-- **Akıllı Soru Sistemi**: Kullanıcının uyku alışkanlıklarını analiz eden adım adım soru sistemi
-- **Kişiselleştirilmiş Öneriler**: Makine öğrenmesi tabanlı yastık önerileri
-- **Modern UI/UX**: React ile geliştirilmiş kullanıcı dostu arayüz
-- **Responsive Tasarım**: Tüm cihazlarda mükemmel görünüm
-- **İlerleme Takibi**: Test sürecinde ilerleme göstergesi
-- **Otomatik Kaydetme**: Test durumunu otomatik olarak kaydetme
+### Geliştirme Ortamı
 
-## 🛠️ Teknolojiler
+1. **Backend'i başlat:**
+   ```powershell
+   cd backend
+   python -m venv venv
+   .\venv\Scripts\Activate.ps1
+   pip install -r requirements.txt
+   python main.py
+   ```
 
-### Backend
-- **Python 3.11**
-- **Flask** - Web framework
-- **SQLAlchemy** - ORM
-- **scikit-learn** - Makine öğrenmesi
-- **pandas** - Veri işleme
-- **openpyxl** - Excel dosya işleme
+2. **Frontend'i başlat:**
+   ```powershell
+   cd frontend
+   npm install
+   npm start
+   ```
 
-### Frontend
-- **React 18**
-- **CSS3** - Styling
-- **HTML5** - Markup
+### Canlı Ortam Deployment
 
-## 📦 Kurulum
+1. **Backend environment dosyası oluştur:**
+   ```powershell
+   cd backend
+   copy env_production.txt .env
+   ```
 
-### Gereksinimler
-- Python 3.11+
-- Node.js 16+
-- npm veya yarn
-- SQL Server (veya başka bir veritabanı)
+2. **Frontend production build al:**
+   ```powershell
+   cd frontend
+   npm install
+   npm run build
+   ```
 
-### Backend Kurulumu
-
-1. Backend klasörüne gidin:
-```bash
-cd backend
-```
-
-2. Virtual environment oluşturun:
-```bash
-python -m venv venv
-```
-
-3. Virtual environment'ı aktifleştirin:
-```bash
-# Windows
-venv\Scripts\activate
-
-# macOS/Linux
-source venv/bin/activate
-```
-
-4. Gerekli paketleri yükleyin:
-```bash
-pip install -r requirements.txt
-```
-
-5. **ÖNEMLİ**: Veritabanı yapılandırması için `.env` dosyası oluşturun:
-```bash
-# .env.example dosyasını .env olarak kopyalayın
-cp .env.example .env
-```
-
-6. `.env` dosyasını düzenleyin ve kendi veritabanı bilgilerinizi girin:
-```env
-DB_USERNAME=your_username
-DB_PASSWORD=your_password
-DB_SERVER=your_server_name
-DB_PORT=1433
-DB_NAME=your_database_name
-DB_DRIVER=ODBC+Driver+17+for+SQL+Server
-```
-
-7. Uygulamayı çalıştırın:
-```bash
-python main.py
-```
-
-Backend `http://localhost:5000` adresinde çalışacaktır.
-
-### Frontend Kurulumu
-
-1. Frontend klasörüne gidin:
-```bash
-cd frontend
-```
-
-2. Environment variable dosyasını oluşturun:
-```bash
-# env.example dosyasını .env olarak kopyalayın
-cp env.example .env
-```
-
-3. `.env` dosyasını düzenleyin:
-```env
-# Geliştirme ortamı için
-REACT_APP_API_URL=http://localhost:5000
-
-# Canlı ortam için
-# REACT_APP_API_URL=https://api.seninsite.com
-```
-
-4. Bağımlılıkları yükleyin:
-```bash
-npm install
-```
-
-5. Uygulamayı çalıştırın:
-```bash
-npm start
-```
-
-Frontend `http://localhost:3000` adresinde çalışacaktır.
-
-## 🔒 Güvenlik
-
-- **Veritabanı bilgileri** `.env` dosyasında saklanır ve GitHub'a yüklenmez
-- **API URL'leri** environment variables ile yönetilir
-- **Hassas bilgiler** kod içinde hardcode edilmemiştir
-- **Environment variables** kullanılarak güvenlik sağlanmıştır
-- **Rate limiting** API endpoint'lerinde uygulanmıştır
-- **CORS** güvenli şekilde yapılandırılmıştır
-
-## 🎯 Kullanım
-
-1. Tarayıcınızda `http://localhost:3000` adresine gidin
-2. "Teste Başla" butonuna tıklayın
-3. Soruları adım adım cevaplayın
-4. Sonuçlarınızı görüntüleyin
+3. **IIS'e manuel deploy et**
 
 ## 📁 Proje Yapısı
 
 ```
 PillowSelectionRobot/
-├── backend/                 # Flask backend
-│   ├── main.py             # Ana uygulama dosyası
-│   ├── import_yastiklar.py # Veri import scripti
-│   ├── check_excel_columns.py # Excel kontrol scripti
-│   ├── .env                # Veritabanı bilgileri (GitHub'a yüklenmez)
-│   ├── .env.example        # Örnek .env dosyası
+├── backend/                 # Flask API
+│   ├── main.py             # Ana uygulama
 │   ├── requirements.txt    # Python bağımlılıkları
-│   ├── venv/               # Python virtual environment
-│   └── instance/           # SQLite veritabanı
-├── frontend/               # React frontend
+│   ├── web.config         # IIS yapılandırması
+│   ├── env_example.txt    # Geliştirme environment örneği
+│   └── env_production.txt # Canlı ortam ayarları
+├── frontend/               # React uygulaması
 │   ├── src/
-│   │   ├── App.js          # Ana React bileşeni
-│   │   ├── components/     # React bileşenleri
-│   │   └── assets/         # Statik dosyalar
-│   ├── package.json        # Node.js bağımlılıkları
-│   └── public/             # Public dosyalar
-├── .gitignore              # Git ignore dosyası
-└── README.md               # Bu dosya
+│   │   ├── config.js      # API konfigürasyonu (otomatik domain)
+│   │   └── components/    # React bileşenleri
+│   └── build/             # Production build
+└── PRODUCTION_CHECKLIST.md # Canlı ortam kontrol listesi
 ```
 
-## 🔧 Geliştirme
+## ⚙️ Environment Dosyaları
 
-### Backend Geliştirme
-- Flask debug modu aktif
-- SQLite veritabanı kullanılıyor
-- CORS desteği mevcut
-- Environment variables ile güvenli yapılandırma
+### Backend (.env)
+```env
+# Veritabanı
+DATABASE_URL=mssql+pyodbc://username:password@server/database?driver=ODBC+Driver+17+for+SQL+Server
 
-### Frontend Geliştirme
-- Hot reload aktif
-- ESLint kuralları uygulanıyor
-- Modern React hooks kullanılıyor
+# Mail ayarları
+MAIL_SERVER=smtp.office365.com
+MAIL_PORT=587
+MAIL_USERNAME=your-email@domain.com
+MAIL_PASSWORD=your-password
+MAIL_DEFAULT_SENDER=your-email@domain.com
 
-## 📝 API Endpoints
+# Ortam
+FLASK_ENV=production
+ALLOWED_ORIGINS=https://mastermatch.doquhome.com.tr
+```
 
-- `GET /questions` - Soruları getir
-- `POST /recommend` - Yastık önerisi al
-- `GET /health` - Sağlık kontrolü
+### Frontend (Otomatik)
+```javascript
+// config.js otomatik olarak ortamı algılar:
+// Development: http://localhost:5000
+// Production: https://mastermatch.doquhome.com.tr
+```
 
-## 🤝 Katkıda Bulunma
+## 🔗 API Endpoint'leri
 
-1. Bu repository'yi fork edin
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Değişikliklerinizi commit edin (`git commit -m 'Add amazing feature'`)
-4. Branch'inizi push edin (`git push origin feature/amazing-feature`)
-5. Pull Request oluşturun
+- `GET /api/health` - Sistem sağlık kontrolü
+- `GET /api/questions` - Sorular listesi
+- `GET /api/yastiklar` - Yastık listesi
+- `POST /api/recommend` - Yastık önerisi
+- `POST /api/kvkk_onay_ekle` - KVKK onayı
+- `GET /api/kvkk_metin` - KVKK metni
+- `POST /api/log_urun_inceleme` - Ürün inceleme logu
+- `POST /api/save-mail` - Mail gönderme
 
-## 📄 Lisans
+## 🌐 URL'ler
 
-Bu proje MIT lisansı altında lisanslanmıştır.
+### Geliştirme Ortamı
+- **Frontend:** http://localhost:3000
+- **Backend:** http://localhost:5001
+- **API Health:** http://localhost:5001/api/health
 
-## 👥 İletişim
+### Canlı Ortam
+- **Site:** https://mastermatch.doquhome.com.tr
+- **API:** https://mastermatch.doquhome.com.tr/api
+- **API Health:** mastermatch.doquhome.com.tr/api/health
 
-Proje Sahibi - [@busra_tekel](https://github.com/busra_tekel)
+## 🔧 Manuel Deployment
 
-Proje Linki: [https://github.com/busra_tekel/PillowSelectionRobot](https://github.com/busra_tekel/PillowSelectionRobot) 
+### 1. Backend Deployment
+```powershell
+# Environment dosyası oluştur
+cd backend
+copy env_production.txt .env
+
+# Python ortamı kur
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+pip install wfastcgi
+wfastcgi-enable
+
+# IIS'e kopyala
+# C:\inetpub\wwwroot\PillowSelectionRobot\backend\
+```
+
+### 2. Frontend Deployment
+```powershell
+# Production build al
+cd frontend
+npm install
+npm run build
+
+# IIS'e kopyala
+# C:\inetpub\wwwroot\PillowSelectionRobot\
+```
+
+### 3. IIS Yapılandırması
+- **Ana Site:** `PillowSelectionRobot` → `C:\inetpub\wwwroot\PillowSelectionRobot`
+- **API Alt Uygulaması:** `api` → `C:\inetpub\wwwroot\PillowSelectionRobot\backend`
+- **Application Pool:** `.NET CLR Version: No Managed Code`
+
+## 📋 Kontrol Listesi
+
+Detaylı kontrol listesi için [PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md) dosyasını inceleyin.
+
+## 🚨 Sorun Giderme
+
+### API Bağlantı Sorunları
+```powershell
+# Health kontrolü
+Invoke-WebRequest -Uri "http://localhost:5001/api/health"
+
+# Event Viewer kontrolü
+Get-EventLog -LogName Application -Source W3SVC* -Newest 10
+```
+
+### IIS Sorunları
+- IIS Manager'da site durumunu kontrol edin
+- Application Pool'un çalıştığını kontrol edin
+- Dosya izinlerini kontrol edin
+
+### FastCGI Sorunları
+```powershell
+pip uninstall wfastcgi
+pip install wfastcgi
+wfastcgi-enable
+``` 
