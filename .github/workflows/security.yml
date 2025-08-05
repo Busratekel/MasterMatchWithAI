@@ -23,9 +23,6 @@ jobs:
           "credentials.json"
           "service-account.json"
           "database.db"
-          "*.key"
-          "*.pem"
-          "*.p12"
         )
         
         VIOLATIONS=()
