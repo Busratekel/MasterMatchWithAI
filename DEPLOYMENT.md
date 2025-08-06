@@ -19,7 +19,7 @@
 ### 1. Repository'yi Klonlayın
 
 ```bash
-git clone https://github.com/your-username/PillowSelectionRobotyeni.git
+git clone https://github.com/your-username/MasterMatchWithAI.git
 cd PillowSelectionRobotyeni
 ```
 
