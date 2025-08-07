@@ -248,6 +248,11 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
       <div className="step-content-actions">
       <div className={`options-container ${isTwoOptions ? 'two-options' : ''}`}>
         {question.options && question.options.map((option, index) => {
+          // İdeal sertlik sorusu için sadece 3 temel seçenek göster
+          if (question.id === 'ideal_sertlik' && !['Yumuşak', 'Orta', 'Sert'].includes(option)) {
+            return null;
+          }
+          
           // Option metnini dosya adına çevir
           const getImageSrc = (option) => {
             return require(`../assets/${option

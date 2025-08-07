@@ -183,7 +183,7 @@ class KullaniciLog(db.Model):
 
 # --- Sabit Veriler ---
 SORU_AGIRLIKLARI = {
-    'sertlik': 1, 'bmi': 2, 'yas': 2, 'uyku_pozisyonu': 3, 'dogal_malzeme': 4, 'tempo': 5, 'agri_bolge': 6, 'uyku_düzeni': 7,
+    'sertlik': 1, 'bmi': 2, 'yas': 2, 'uyku_pozisyonu': 3, 'ideal_sertlik': 4,'dogal_malzeme': 5, 'tempo': 6, 'agri_bolge': 7, 'uyku_düzeni': 8,
 }
 
 # --- Yardımcı Fonksiyonlar ---
@@ -263,6 +263,21 @@ def calculate_pillow_recommendations(responses):
             if bmi_cevap_normalized in bmi_yastik_normalized:
                 toplam_puan += SORU_AGIRLIKLARI.get('bmi', 2)
 
+        # Doğal malzeme alerjisi için özel kontrol
+        dogal_malzeme_cevap = responses.get('dogal_malzeme')
+        if dogal_malzeme_cevap:
+            # Kullanıcı alerjisi varsa
+            if 'evet' in str(dogal_malzeme_cevap).lower():
+                # Yastık doğal malzemeli mi kontrol et
+                yastik_dogal_malzeme = yastik.dogal_malzeme or ''
+                dogal_malzemeler = ['kaz tüyü', 'yün', 'bambu', 'pamuk', 'doğal', 'organik']
+                
+                # Yastık doğal malzemeli ise puanı sıfırla
+                for malzeme in dogal_malzemeler:
+                    if malzeme.lower() in yastik_dogal_malzeme.lower():
+                        toplam_puan = 0  # Alerjik kullanıcı için doğal malzemeli yastık uygun değil
+                        break
+
         # Yastık ve puanını listeye ekle
         yastik_puanlari.append({
             'yastik': yastik.to_dict(),
@@ -315,8 +330,15 @@ def calculate_pillow_recommendations(responses):
         for i, item in enumerate(yastik_puanlari):
             print(f"{i+1}. {item['yastik']['isim']} - Puan: {item['puan']}")
     else:
-        # 7+ yaş için normal puan sıralaması
-        yastik_puanlari.sort(key=lambda x: x['puan'], reverse=True)
+        # 7+ yaş için: bebek yastıkları hariç, normal puan sıralaması
+        yastiklar_yas_bebek_haric = []
+        for item in yastik_puanlari:
+            yastik_yas = item['yastik'].get('yas', '')
+            yastik_isim = item['yastik'].get('isim', '').lower()
+            if not (yastik_yas and ('0-7' in str(yastik_yas).lower() or 'bebek' in yastik_isim)):
+                yastiklar_yas_bebek_haric.append(item)
+        yastiklar_yas_bebek_haric.sort(key=lambda x: x['puan'], reverse=True)
+        yastik_puanlari = yastiklar_yas_bebek_haric
     
     # İlk 5 yastığı döndür
     return [item['yastik'] for item in yastik_puanlari[:5]]
@@ -330,11 +352,13 @@ QUESTIONS = [
         'order': 1
     },
     {'id': 'uyku_pozisyonu', 'question': 'Sizin için en rahat uyku pozisyonunu seçer misiniz?', 'type': 'checkbox', 'options': ['Sırt üstü uyku pozisyonu', 'Yüz üstü uyku pozisyonu', 'Yan uyku pozisyonu', 'Pozisyonum değişken'], 'info': 'Uyku pozisyonu, boyun ve omurga sağlığınızı doğrudan etkiler. Doğru yastık, uyku tarzınıza uyum sağlamalıdır.', 'order': 2},
-    {'id': 'uyku_düzeni', 'question': 'Uyku düzeniniz genellikle nasıldır?', 'type': 'radio', 'options': ['Uykum terleme nedeniyle bölünüyor.', 'Hiçbir problem yaşamıyorum, sabahları dinlenmiş uyanıyorum.','Nefes almakta zorlanıyorum, zaman zaman horlama problemi yaşıyorum','Reflü nedeniyle geceleri sık sık uyanıyorum.'], 'info': 'Terleme sorunu için özel yastıklar mevcuttur.', 'order': 3},
-    {'id': 'tempo', 'question': 'Gününüzün temposunu nasıl tanımlarsınız?', 'type': 'radio', 'options': ['Oldukça sakin bir tempom var.','Genelde orta tempoda, dengeli bir günüm oluyor.', 'Yoğun tempolu bir gün geçiriyorum.'], 'info': 'Yoğun tempolu yaşamda vücut daha fazla destek ve dinlenmeye ihtiyaç duyar. Doğru yastık, günün yorgunluğunu hafifletir.', 'order': 4},
-    {'id': 'agri_bolge', 'question': 'Sabahları belirli bir bölgede ağrı hissediyor musunuz?', 'type': 'checkbox', 'options': ['Hiçbir ağrı hissetmiyorum', 'Bel', 'Omuz', 'Boyun', 'Hepsi'], 'info': 'Boyun, omuz veya bel ağrısı; yanlış yastık seçiminden kaynaklanıyor olabilir. Vücudunuzu dinleyin, ihtiyacınıza uygun yastığı seçin.', 'order': 5},
-    {'id': 'dogal_malzeme', 'question': 'Uyku sırasında sizin için daha önemli olan nedir?', 'type': 'radio', 'options': ['Doğal malzemelerin sunduğu doğallık ve nefes alabilirlik', 'Modern teknolojili yastıkların sağladığı konfor ve destek'], 'info': 'Doğal içerikler nefes alabilirlik sağlar, hassas ciltler için daha uygundur. Bambu, pamuk ve yün gibi malzemeler konfor sunar.', 'order': 6},
-    {'id': 'sertlik', 'question': 'Yatak sertlik derecenizi belirtir misiniz?', 'type': 'radio', 'options': ['Yumuşak', 'Orta', 'Sert'], 'info': 'Yatak sertliği, yastığın yüksekliği ve dolgunluğu ile uyumlu olmalı. Uyumlu ikili, daha sağlıklı bir uyku sağlar.', 'order': 7}
+    {'id': 'ideal_sertlik', 'question': 'Sizin için ideal yastık sertliği nedir?', 'type': 'checkbox', 'options': ['Yumuşak', 'Orta', 'Sert', 'Orta-Sert'], 'info': 'Yastık sertliği, baş ve boynunuza ne kadar destek verdiğini belirler. Yumuşak yastıklar daha çok batarken, sert yastıklar daha sıkı bir yapı sunar. Konforunuz için size en uygun olanı seçin.', 'order': 3},
+    {'id': 'uyku_düzeni', 'question': 'Uyku düzeniniz genellikle nasıldır?', 'type': 'radio', 'options': ['Uykum terleme nedeniyle bölünüyor.', 'Hiçbir problem yaşamıyorum, sabahları dinlenmiş uyanıyorum.','Nefes almakta zorlanıyorum, zaman zaman horlama problemi yaşıyorum','Reflü nedeniyle geceleri sık sık uyanıyorum.'], 'info': 'Terleme sorunu için özel yastıklar mevcuttur.', 'order': 4},
+    {'id': 'tempo', 'question': 'Günlük yaşam temponuzu nasıl tanımlarsınız?', 'type': 'radio', 'options': ['Oldukça sakin bir tempom var.','Genelde orta tempoda, dengeli bir günüm oluyor.', 'Yoğun tempolu bir gün geçiriyorum.'], 'info': 'Yoğun tempolu yaşamda vücut daha fazla destek ve dinlenmeye ihtiyaç duyar. Doğru yastık, günün yorgunluğunu hafifletir.', 'order': 5},
+    {'id': 'agri_bolge', 'question': 'Sabahları belirli bir bölgede ağrı hissediyor musunuz?', 'type': 'checkbox', 'options': ['Hiçbir ağrı hissetmiyorum', 'Bel', 'Omuz', 'Boyun', 'Hepsi'], 'info': 'Boyun, omuz veya bel ağrısı; yanlış yastık seçiminden kaynaklanıyor olabilir. Vücudunuzu dinleyin, ihtiyacınıza uygun yastığı seçin.', 'order': 6},
+    {'id': 'dogal_malzeme', 'question': 'Doğal malzemelere (kaz tüyü,yün,bambupamuk gibi) karşı alerjiniz veya hassasiyetiniz var mı ?', 'type': 'checkbox', 'options': ['Evet,bu tür doğal malzemelere karşı alerjim/hassasiyetim var', 'Hayır,yok'], 'info': 'Bazı kişiler doğal dolgu malzemelerine (kaz tüyü,yün,bambu,pamuk gibi) karşı alerjik reaksiyon veya hassasiyet gösterebilir.Bu kişiler için,elyaf dolgulu veya visco sünger dolgulu ürünlerin kullanımı daha sağlıklı ve konforlu bir tercih olabilir', 'order': 7},
+    
+    {'id': 'sertlik', 'question': 'Yatak sertlik derecenizi belirtir misiniz?', 'type': 'radio', 'options': ['Yumuşak', 'Orta', 'Sert'], 'info': 'Yatak sertliği, yastığın yüksekliği ve dolgunluğu ile uyumlu olmalı. Uyumlu ikili, daha sağlıklı bir uyku sağlar.', 'order': 8}
 ]
 
 # --- API Endpoint'leri ---
@@ -396,6 +420,8 @@ def get_yastiklar():
     except Exception as e:
         print(f"Yastık getirme hatası: {e}")
         return jsonify(error="Yastıklar yüklenirken bir hata oluştu."), 500
+
+
 
 @app.route('/api/recommend', methods=['POST'])
 @limiter.limit("10 per minute")  # Her IP için dakikada 10 istek

@@ -24,7 +24,7 @@ const QUESTIONS = [
   },
   {
     id: 'tempo',
-    question: 'Gününüzün temposunu nasıl tanımlarsınız?',
+    question: 'Günlük yaşam temponuzu nasıl tanımlarsınız?',
     info: 'Yoğun tempolu yaşamda vücut daha fazla destek ve dinlenmeye ihtiyaç duyar. Doğru yastık, günün yorgunluğunu hafifletir.'
   },
   {
@@ -32,11 +32,16 @@ const QUESTIONS = [
     question: 'Sabahları belirli bir bölgede ağrı hissediyor musunuz?',
     info: 'Boyun, omuz veya bel ağrısı; yanlış yastık seçiminden kaynaklanıyor olabilir. Vücudunuzu dinleyin, ihtiyacınıza uygun yastığı seçin.'
   },
-  {
-    id: 'dogal_malzeme',
-    question: 'Uyku sırasında sizin için daha önemli olan nedir?',
-    info: 'Doğal içerikler nefes alabilirlik sağlar, hassas ciltler için daha uygundur. Bambu, pamuk ve yün gibi malzemeler konfor sunar.'
-  },
+      {
+      id: 'dogal_malzeme',
+      question: 'Doğal malzemelere (kaz tüyü,yün,bambupamuk gibi) karşı alerjiniz veya hassasiyetiniz var mı ?',
+      info: 'Bazı kişiler doğal dolgu malzemelerine (kaz tüyü,yün,bambu,pamuk gibi) karşı alerjik reaksiyon veya hassasiyet gösterebilir. Bu kişiler için, elyaf dolgulu veya visco sünger dolgulu ürünlerin kullanımı daha sağlıklı ve konforlu bir tercih olabilir.'
+    },
+      {
+      id: 'ideal_sertlik',
+      question: 'Sizin için ideal yastık sertliği nedir?',
+      info: 'Yastık sertliği, baş ve boynunuza ne kadar destek verdiğini belirler. Yumuşak yastıklar daha çok batarken, sert yastıklar daha sıkı bir yapı sunar. Konforunuz için size en uygun olanı seçin.'
+    },
   {
     id: 'sertlik',
     question: 'Yatak sertlik derecenizi belirtir misiniz?',
@@ -74,8 +79,14 @@ function getAnswerAnalysis(qid, answer) {
       break;
     
     case 'dogal_malzeme':
-      if (answer.includes('Doğal')) return 'Doğal malzemeler nefes alabilirlik ve doğallık sunar.';
-      if (answer.includes('Modern')) return 'Modern teknolojili yastıklar ekstra konfor ve destek sağlar.';
+      if (answer.includes('Evet')) return 'Alerji/hassasiyet durumunuz için elyaf dolgulu veya visco sünger dolgulu yastıklar önerilir.';
+      if (answer.includes('Hayır')) return 'Doğal malzemelere karşı hassasiyetiniz yoksa tüm yastık türlerini kullanabilirsiniz.';
+      break;
+    case 'ideal_sertlik':
+      if (answer.includes('Yumuşak')) return 'Yumuşak yastıklar boyun desteği sağlarken konfor sunar.';
+              if (answer.includes('Orta')) return 'Orta sertlikteki yastıklar dengeyi sağlar.';
+        if (answer.includes('Sert')) return 'Sert yastıklar maksimum boyun desteği sağlar.';
+        if (answer.includes('Yumuşak-Orta')) return 'Yumuşak-orta yastıklar hem konfor hem destek sağlar.';
       break;
     case 'sertlik':
       if (answer.includes('Yumuşak')) return 'Yumuşak yataklarda yumuşak yastıklar tercih edilebilir.';
