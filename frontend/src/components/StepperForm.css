@@ -42,7 +42,8 @@ html, body {
 
 .sidebar-footer {
   width: 100%;
-  margin-top: -50px;
+  margin-top: auto;
+  padding-top: 10px;
 }
 
 .form-navigation {
@@ -86,18 +87,18 @@ html, body {
 .steps-list-plain {
   list-style: none;
   padding: 0;
-  margin: 25px 0 100px 0;
+  margin: 20px 0 15px 0;
   font-family: 'IvyPresto Text', Arial, Helvetica, sans-serif;
   font-weight: 150;
   font-style: italic;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .step-plain-item {
   color: black;
-  font-size: 1.0rem;
+  font-size: 0.95rem;
   margin-bottom: 0;
   display: flex;
   align-items: center;
@@ -105,7 +106,7 @@ html, body {
   background: #f4f8fa;
   border: 2px solid #b3c7d6;
   border-radius: 6px;
-  padding: 6px 8px;
+  padding: 5px 7px;
   transition: background 0.2s, border 0.2s, color 0.2s, box-shadow 0.2s;
   box-shadow: 0 2px 8px 0 rgba(44, 132, 255, 0.04);
   position: relative;
@@ -178,20 +179,20 @@ html, body {
 
 .btn-restart-sidebar {
   width: 100%;
-  padding: 12px 0;
+  padding: 8px 0;
   background: linear-gradient(90deg, #4b74a2 0%, #98acb7 100%);
   color: #fff;
   border: none;
-  border-radius: 20px;
-  font-size: 1.1rem;
+  border-radius: 16px;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  margin-top: -10px;
+  margin-top: 0;
   transition: background 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .btn-restart-sidebar:hover {
@@ -206,11 +207,12 @@ html, body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  padding: 32px 24px;
+  padding: 28px 20px;
   height: 700px;
   position: relative;
   left: -8px;
   overflow-y: unset;
+  justify-content: space-between;
 }
 
 .stepper-content-card {
@@ -232,6 +234,12 @@ html, body {
   margin-top: -50px !important;
   margin-left: -20px;
   padding-top: 0px;
+}
+
+.sidebar-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Progress bar for sidebar */
@@ -424,11 +432,11 @@ html, body {
   
   /* Liste yukarı yaklaştır */
   .steps-list-plain {
-    margin: 15px 0 80px 0 !important;
-    gap: 12px !important;
+    margin: 12px 0 15px 0 !important;
+    gap: 10px !important;
   }
   .step-plain-text{
-    font-size: 1.0rem !important;
+    font-size: 0.9rem !important;
   }
   .options-container {
     margin-top: 6px !important;
@@ -451,7 +459,7 @@ html, body {
   .btn-restart-sidebar {
     position: relative !important;
     bottom: auto !important;
-    margin-top: 10px !important;
+    margin-top: 0 !important;
   }
   .sidebar-logo{
     width: 300px !important;

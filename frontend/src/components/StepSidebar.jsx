@@ -34,26 +34,29 @@ const StepSidebar = ({ questions, currentStep, answeredSteps, answers, onStepCli
       <div className="sidebar-progress-percent" style={{textAlign: 'center', fontWeight: 700, color: '#1976d2', marginTop: 10, fontSize: 24}}>
         %{questions.length > 0 ? Math.round((answeredSteps.length / questions.length) * 100) : 0}
       </div>
-      <ol className="steps-list-plain">
-        {questions.map((q, index) => {
-          const isActive = index === currentStep;
-          const isClickable = answeredSteps.includes(index) || isActive;
-          const isLast = index === questions.length - 1;
-          const isAnswered = isStepAnswered(index);
-          return (
-            <li
-              key={q.id}
-              className={`step-plain-item${isActive ? ' active' : ''}${isClickable ? '' : ' not-clickable'}${!isLast ? ' with-underline' : ''}`}
-              onClick={() => isClickable && onStepClick(index)}
-            >
-              <span className="step-check-mark-left">
-                {isAnswered ? "✔" : index + 1}
-              </span>
-              <span className="step-plain-text">{q.question}</span>
-            </li>
-          );
-        })}
-      </ol>
+      
+      <div className="sidebar-content">
+        <ol className="steps-list-plain">
+          {questions.map((q, index) => {
+            const isActive = index === currentStep;
+            const isClickable = answeredSteps.includes(index) || isActive;
+            const isLast = index === questions.length - 1;
+            const isAnswered = isStepAnswered(index);
+            return (
+              <li
+                key={q.id}
+                className={`step-plain-item${isActive ? ' active' : ''}${isClickable ? '' : ' not-clickable'}${!isLast ? ' with-underline' : ''}`}
+                onClick={() => isClickable && onStepClick(index)}
+              >
+                <span className="step-check-mark-left">
+                  {isAnswered ? "✔" : index + 1}
+                </span>
+                <span className="step-plain-text">{q.question}</span>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
 
       <div className="sidebar-footer">
         <button className="btn-restart-sidebar" onClick={onRestart}>

@@ -54,11 +54,17 @@ import os
 def configure_cors():
     environment = os.getenv('FLASK_ENV', 'development')
     if environment == 'production':
-        # Sadece canlı domain izinli
-        CORS(app, origins=['https://mastermatch.doquhome.com.tr'], supports_credentials=True)
+        # Canlı domainler izinli
+        CORS(app, origins=[
+            'https://mastermatch.doquhome.com.tr',
+            'https://devmastermatch.doquhome.com.tr'
+        ], supports_credentials=True)
     else:
-        # Sadece localhost izinli
-        CORS(app, origins=['http://localhost:3000'], supports_credentials=True)
+        # Geliştirme ortamı - localhost ve dev domain izinli
+        CORS(app, origins=[
+            'http://localhost:3000',
+            'https://devmastermatch.doquhome.com.tr'
+        ], supports_credentials=True)
 
 configure_cors()
 
@@ -356,7 +362,7 @@ QUESTIONS = [
     {'id': 'uyku_düzeni', 'question': 'Uyku düzeniniz genellikle nasıldır?', 'type': 'radio', 'options': ['Uykum terleme nedeniyle bölünüyor.', 'Hiçbir problem yaşamıyorum, sabahları dinlenmiş uyanıyorum.','Nefes almakta zorlanıyorum, zaman zaman horlama problemi yaşıyorum','Reflü nedeniyle geceleri sık sık uyanıyorum.'], 'info': 'Terleme sorunu için özel yastıklar mevcuttur.', 'order': 4},
     {'id': 'tempo', 'question': 'Günlük yaşam temponuzu nasıl tanımlarsınız?', 'type': 'radio', 'options': ['Oldukça sakin bir tempom var.','Genelde orta tempoda, dengeli bir günüm oluyor.', 'Yoğun tempolu bir gün geçiriyorum.'], 'info': 'Yoğun tempolu yaşamda vücut daha fazla destek ve dinlenmeye ihtiyaç duyar. Doğru yastık, günün yorgunluğunu hafifletir.', 'order': 5},
     {'id': 'agri_bolge', 'question': 'Sabahları belirli bir bölgede ağrı hissediyor musunuz?', 'type': 'checkbox', 'options': ['Hiçbir ağrı hissetmiyorum', 'Bel', 'Omuz', 'Boyun', 'Hepsi'], 'info': 'Boyun, omuz veya bel ağrısı; yanlış yastık seçiminden kaynaklanıyor olabilir. Vücudunuzu dinleyin, ihtiyacınıza uygun yastığı seçin.', 'order': 6},
-    {'id': 'dogal_malzeme', 'question': 'Doğal malzemelere (kaz tüyü,yün,bambupamuk gibi) karşı alerjiniz veya hassasiyetiniz var mı ?', 'type': 'checkbox', 'options': ['Evet,bu tür doğal malzemelere karşı alerjim/hassasiyetim var', 'Hayır,yok'], 'info': 'Bazı kişiler doğal dolgu malzemelerine (kaz tüyü,yün,bambu,pamuk gibi) karşı alerjik reaksiyon veya hassasiyet gösterebilir.Bu kişiler için,elyaf dolgulu veya visco sünger dolgulu ürünlerin kullanımı daha sağlıklı ve konforlu bir tercih olabilir', 'order': 7},
+    {'id': 'dogal_malzeme', 'question': 'Doğal malzemelere (kaz tüyü,yün,bambu,pamuk gibi) karşı alerjiniz veya hassasiyetiniz var mı ?', 'type': 'checkbox', 'options': ['Evet,bu tür doğal malzemelere karşı alerjim,hassasiyetim var', 'Hayır,yok'], 'info': 'Bazı kişiler doğal dolgu malzemelerine (kaz tüyü,yün,bambu,pamuk gibi) karşı alerjik reaksiyon veya hassasiyet gösterebilir.Bu kişiler için,elyaf dolgulu veya visco sünger dolgulu ürünlerin kullanımı daha sağlıklı ve konforlu bir tercih olabilir', 'order': 7},
     
     {'id': 'sertlik', 'question': 'Yatak sertlik derecenizi belirtir misiniz?', 'type': 'radio', 'options': ['Yumuşak', 'Orta', 'Sert'], 'info': 'Yatak sertliği, yastığın yüksekliği ve dolgunluğu ile uyumlu olmalı. Uyumlu ikili, daha sağlıklı bir uyku sağlar.', 'order': 8}
 ]
