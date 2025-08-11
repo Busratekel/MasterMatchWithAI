@@ -41,11 +41,24 @@ function App() {
   // Video ref
   const videoRef = useRef(null);
   
-  // Uygulama başlarken localStorage'dan yükleme için tek etki
+  // Uygulama başlarken localStorage'dan yükleme için tek etki (24 saat kontrolü ile)
   useEffect(() => {
     try {
       const savedPage = localStorage.getItem('pillowCurrentPage');
       const savedAnswers = JSON.parse(localStorage.getItem('pillowAnswers') || '{}');
+      const savedExpiryTime = localStorage.getItem('pillowExpiryTime');
+      
+      // 24 saat geçmiş mi kontrol et
+      if (savedExpiryTime && Date.now() > parseInt(savedExpiryTime)) {
+        // Süre geçmiş, localStorage'ı temizle
+        localStorage.removeItem('pillowCurrentPage');
+        localStorage.removeItem('pillowAnswers');
+        localStorage.removeItem('pillowCurrentStep');
+        localStorage.removeItem('pillowAnsweredSteps');
+        localStorage.removeItem('pillowExpiryTime');
+        return; // Hiçbir şey yükleme
+      }
+      
       if (savedPage && Object.keys(savedAnswers).length > 0) {
         // Test devam ederken (loading) veya sonuçlar sayfasındayken sayfa yenilenirse...
         if (savedPage === 'loading' || savedPage === 'results') {
@@ -103,13 +116,15 @@ function App() {
     fetchQuestions();
   }, [fetchQuestions]);
 
-  // localStorage'a durumu kaydeden yardımcı fonksiyon
+  // localStorage'a durumu kaydeden yardımcı fonksiyon (24 saat sonra otomatik silinir)
   const saveStateToStorage = useCallback(() => {
     try {
+      const expiryTime = Date.now() + (24 * 60 * 60 * 1000); // 24 saat sonra
       localStorage.setItem('pillowCurrentPage', currentPage);
       localStorage.setItem('pillowAnswers', JSON.stringify(answers));
       localStorage.setItem('pillowCurrentStep', currentStep.toString());
       localStorage.setItem('pillowAnsweredSteps', JSON.stringify(answeredSteps));
+      localStorage.setItem('pillowExpiryTime', expiryTime.toString());
     } catch (error) {
     }
   }, [currentPage, answers, currentStep, answeredSteps]);
@@ -128,6 +143,7 @@ function App() {
       localStorage.removeItem('pillowAnswers');
       localStorage.removeItem('pillowCurrentStep');
       localStorage.removeItem('pillowAnsweredSteps');
+      localStorage.removeItem('pillowExpiryTime');
     } catch (error) {
     }
     // Sonra durumu sıfırla
@@ -199,7 +215,7 @@ function App() {
     setLogId(null); // logId'yi sıfırla
     // localStorage'ı tamamen temizle
     try {
-      localStorage.clear(); // Tüm localStorage'ı temizle
+      localStorage.clear(); // Tüm localStorage'ı temizle (expiry time dahil)
     } catch (error) {
     }
   };
