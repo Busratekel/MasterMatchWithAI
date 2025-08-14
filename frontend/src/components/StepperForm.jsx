@@ -206,22 +206,43 @@ const StepperForm = ({
             </div>
           )}
           <div className="form-navigation">
-            <div className="form-nav-left" />
-            <div className="form-nav-right">
+            <div className="form-nav-left">
               <button
                 className="btn btn-secondary"
                 onClick={handlePrevious}
                 disabled={currentStep === 0}
               >
-                Önceki
+                &lt; GERİ
               </button>
+            </div>
+            
+            {/* Soru göstergeleri */}
+            <div className="question-indicators">
+              {questions.map((_, index) => (
+                <div
+                  key={index}
+                  className={`question-indicator ${
+                    index === currentStep ? 'active' : ''
+                  } ${answeredSteps.includes(index) ? 'answered' : ''}`}
+                  onClick={() => {
+                    if (answeredSteps.includes(index) || index === currentStep) {
+                      setCurrentStep(index);
+                    }
+                  }}
+                >
+                  {answeredSteps.includes(index) ? '✓' : index + 1}
+                </div>
+              ))}
+            </div>
+            
+            <div className="form-nav-right">
               {currentStep < questions.length - 1 ? (
                 <button
                   className="btn"
                   onClick={handleNext}
                   disabled={!canProceed}
                 >
-                  Sonraki
+                  İLERİ &gt;
                 </button>
               ) : (
                 <button

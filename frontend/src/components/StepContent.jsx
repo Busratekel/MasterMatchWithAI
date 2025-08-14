@@ -120,8 +120,9 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
       <h2 className="step-question-title">{question.question}</h2>
       <hr className="content-divider" />
       </div>
-        <div className="bmi-age-special-wrapper">
-        <div className="bmi-row-modern" style={{ marginBottom: '4px' }}>
+        {/* Yaş, Boy, Kilo Container */}
+        <div className="bmi-input-container">
+          <div className="bmi-row-modern" style={{ marginBottom: '4px' }}>
             <label htmlFor="yas-slider">Yaşınız:</label>
             <div className="bmi-value-group">
               <input className="bmi-value-box" value={localAge === 65 ? '65+' : localAge} readOnly />
@@ -137,7 +138,7 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
             onChange={(_, v) => setLocalAge(Number(v))}
             className="MuiSlider-root"
           />
-          {/* Her zaman boy ve kilo inputları gösterilecek */}
+          
           <div className="bmi-row-modern" style={{ marginBottom: '4px' }}>
             <label htmlFor="boy-slider">Boyunuz:</label>
             <div className="bmi-value-group">
@@ -154,6 +155,7 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
             className={`MuiSlider-root${localAge !== '' && Number(localAge) <= 7 ? ' bmi-disabled-slider' : ''}`}
             disabled={localAge !== '' && Number(localAge) <= 7}
           />
+          
           <div className="bmi-row-modern" style={{ marginBottom: '4px' }}>
             <label htmlFor="kilo-slider">Kilonuz:</label>
             <div className="bmi-value-group">
@@ -170,19 +172,23 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
             className={`MuiSlider-root${localAge !== '' && Number(localAge) <= 7 ? ' bmi-disabled-slider' : ''}`}
             disabled={localAge !== '' && Number(localAge) <= 7}
           />
-          {/* Uyarı veya BMI barı */}
-          <div className="vki-row" style={{ width: '100%', flexDirection: 'column', alignItems: 'center', marginTop: '82px' }}>
-            {localAge !== '' && Number(localAge) <= 7 ? (
-              <span className="bmi-warning">0-7 yaş arası için BMI hesaplanmaz.</span>
-            ) : (
-              <>
-                <VKIBar vki={bmiValue} />
-                {bmiValue && (
-                  <div className="vki-value">VKI: <b>{bmiValue}</b></div>
-                )}
-              </>
-            )}
-          </div>
+        </div>
+
+        {/* VKI Container */}
+        <div className="vki-container">
+          {localAge !== '' && Number(localAge) <= 7 ? (
+            <span className="bmi-warning">0-7 yaş arası için BMI hesaplanmaz.</span>
+          ) : (
+            <div className="vki-content-wrapper">
+              <VKIBar vki={bmiValue} />
+              {bmiValue && (
+                <div className="vki-value">
+                  Vücut Kitle İndeksi: 
+                  <span className="vki-value-box">{bmiValue}</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </>
     );
@@ -246,7 +252,7 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
         <hr className="content-divider" />
         </div>
       <div className="step-content-actions">
-      <div className={`options-container ${isTwoOptions ? 'two-options' : ''}`}>
+      <div className={`options-container ${isTwoOptions ? 'two-options' : ''} ${question.type === 'checkbox' ? 'checkbox-options' : ''}`}>
         {question.options && question.options.map((option, index) => {
           // İdeal sertlik sorusu için sadece 3 temel seçenek göster
           if (question.id === 'ideal_sertlik' && !['Yumuşak', 'Orta', 'Sert'].includes(option)) {
@@ -255,6 +261,7 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
           
           // Option metnini dosya adına çevir
           const getImageSrc = (option) => {
+            
             return require(`../assets/${option
               .toLowerCase()
               .replace(/ /g, '')
@@ -289,7 +296,7 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
                     src={getImageSrc(option)}
                     alt={option}
                     className="option-image"
-                    style={{ width: 200, height: 300, objectFit: 'contain', marginBottom: 8, display: 'block', marginLeft: 'auto', marginRight: 'auto' }}
+                    style={{ width: 150, height: 280, objectFit: 'contain', marginBottom: 8, display: 'block', marginLeft: 'auto', marginRight: 'auto' }}
                   />
                 </div>
               </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import './StepperForm.css';
-import dSleepLogo from '../assets/sidebarlogo.png';
+import dSleepLogo from '../assets/welcomelogo.png';
 
 const StepSidebar = ({ questions, currentStep, answeredSteps, answers, onStepClick, onRestart }) => {
 
@@ -19,21 +19,24 @@ const StepSidebar = ({ questions, currentStep, answeredSteps, answers, onStepCli
 
   return (
     <div className="stepper-sidebar">
-      <div className="sidebar-header">
-        <img src={dSleepLogo} alt="Logo" className="sidebar-logo" />
-      </div>
+                <img src={dSleepLogo} alt="Logo" className="sidebar-logo" />
 
-      {/* Progress Bar */}
-      <div className="sidebar-progress-bar-container">
-        <div
-          className="sidebar-progress-bar"
-          style={{ width: questions.length > 0 ? `${Math.max((answeredSteps.length / questions.length) * 100, answeredSteps.length > 0 ? 8 : 0)}%` : '0%' }}
-        />
-      </div>
-      {/* Progress Bar Yüzdelik */}
-      <div className="sidebar-progress-percent" style={{textAlign: 'center', fontWeight: 700, color: '#1976d2', marginTop: 10, fontSize: 24}}>
-        %{questions.length > 0 ? Math.round((answeredSteps.length / questions.length) * 100) : 0}
-      </div>
+        {/* Yeni Progress Bar */}
+        <div className="new-progress-container">
+          <div className="new-progress-bar">
+            <div 
+              className="new-progress-fill"
+              style={{ 
+                width: questions.length > 0 ? `${(answeredSteps.length / questions.length) * 100}%` : '0%' 
+              }}
+            ></div>
+          </div>
+          <div className="new-progress-text">
+            %{questions.length > 0 ? Math.round((answeredSteps.length / questions.length) * 100) : 0}
+          </div>
+        </div>
+
+        
       
       <div className="sidebar-content">
         <ol className="steps-list-plain">
@@ -49,7 +52,7 @@ const StepSidebar = ({ questions, currentStep, answeredSteps, answers, onStepCli
                 onClick={() => isClickable && onStepClick(index)}
               >
                 <span className="step-check-mark-left">
-                  {isAnswered ? "✔" : index + 1}
+                  {isAnswered ? "✔" : (index + 1).toString().padStart(2, '0')}
                 </span>
                 <span className="step-plain-text">{q.question}</span>
               </li>
@@ -60,7 +63,6 @@ const StepSidebar = ({ questions, currentStep, answeredSteps, answers, onStepCli
 
       <div className="sidebar-footer">
         <button className="btn-restart-sidebar" onClick={onRestart}>
-          <span role="img" aria-label="restart">♻️</span>
           Teste Yeniden Başla
         </button>
       </div>

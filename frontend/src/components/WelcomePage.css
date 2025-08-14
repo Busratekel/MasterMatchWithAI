@@ -1,3 +1,52 @@
+@font-face {
+  font-family: 'Helvetica Neue Light';
+  src: url('https://fonts.cdnfonts.com/css/helvetica-neue-9') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Myriad Pro Regular';
+  src: url('https://fonts.cdnfonts.com/css/myriad-pro') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Standing Flower Script';
+  src: url('https://fonts.cdnfonts.com/css/standing-flower-script') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Persosnel Use';
+  src: url('https://fonts.cdnfonts.com/css/persosnel-use') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Glory Light';
+  src: url('https://fonts.cdnfonts.com/css/glory') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Glory Semi Bold';
+  src: url('https://fonts.cdnfonts.com/css/glory') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Glory Extra Bold';
+  src: url('https://fonts.cdnfonts.com/css/glory') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+}
+
 html, body, #root {
   width: 100vw;
   height: 100vh;
@@ -21,7 +70,7 @@ html, body, #root {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #c4d8df;
+  background: #c3d5f5;
   overflow: auto;
   min-width: 100vw;
   min-height: 100vh;
@@ -41,7 +90,7 @@ html, body, #root {
   min-height: 700px;
   box-sizing: border-box;
   margin: 0 16px;
-  background: #fff;
+  background: #eaeff6;
   border-radius: 20px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.10);
   padding: 120px 20px 20px 40px;
@@ -50,12 +99,14 @@ html, body, #root {
 }
 
 .welcome-logo {
-  width: 600px;
+  width: 350px;
   height: auto;
   margin-bottom: auto;
   margin-top: -80px;
   margin-left: -10px;
   display: block;
+  background: transparent;
+  mix-blend-mode: multiply;
 }
 
 .main-title {
@@ -79,10 +130,10 @@ html, body, #root {
 }
 
 .description {
-  font-family: 'Source Sans 3', Arial, Helvetica, sans-serif;
-  font-weight: 400;
+  font-family: 'Helvetica Neue Light', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: 300;
   font-style: normal;
-  font-size: 20px;
+  font-size: 16px;
   line-height: 1.4;
   margin-bottom: 22px;
   margin-top: 30px;
@@ -97,7 +148,8 @@ html, body, #root {
   text-decoration: underline;
   cursor: pointer;
   font-size: 16px;
-  font-weight: 650;
+  font-family: 'Glory Light', 'Glory', Arial, sans-serif;
+  font-weight: 300;
   pointer-events: auto;
 }
 
@@ -109,21 +161,34 @@ html, body, #root {
 }
 
 .consent-options label {
-  font-family: 'Source Sans 3', Arial, Helvetica, sans-serif;
+  font-family: 'Myriad Pro Regular', 'Myriad Pro', Arial, Helvetica, sans-serif;
   font-weight: 400; /* Regular */
-  font-size: 20px;
+  font-size: 16px;
   color:  #3982aa !important;
   display: flex;
   align-items: center;
   gap: 2px;
 }
 
+.consent-options input[type="checkbox"] {
+  accent-color: #3982aa;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.consent-options input[type="checkbox"]:checked {
+  accent-color: #3982aa;
+}
+
 .start-button {
-  background: linear-gradient(90deg, #34d1ff, #2563eb, #7c3aed);
-  color: #fff;
-  border: none;
+  background: #fff;
+  color: #3982aa;
+  border: 1px solid #c3d5f5;
   padding: 0px 16px 0px 44px;
   font-size: 15px;
+  font-family: 'Glory Semi Bold', 'Glory', Arial, sans-serif;
   font-weight: 600;
   border-radius: 10px;
   display: inline-flex;
@@ -134,7 +199,7 @@ html, body, #root {
   position: relative;
   overflow: hidden;
   animation: pulse 1s infinite;
-  box-shadow: 0 4px 16px 0 rgba(44, 132, 255, 0.18);
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
 }
 
 .start-button:disabled {
@@ -144,8 +209,8 @@ html, body, #root {
 }
 
 .start-button:hover:not(:disabled) {
-  background: linear-gradient(90deg, #7c3aed, #2563eb, #34d1ff);
-  box-shadow: 0 6px 24px 0 rgba(44, 132, 255, 0.28);
+  background: #f8f9fa;
+  box-shadow: 0 6px 24px 0 rgba(0, 0, 0, 0.15);
 }
 
 .big-animated-arrow {
@@ -184,12 +249,32 @@ html, body, #root {
 }
 
 .welcome-video {
-  width: 100%;
-  height: 100%;
+  width: 443px;
+  height: 600px;
   object-fit: cover;
   background: #000;
-  /* border-radius ve border kaldırıldı */
-  border: none;
+  border: none !important;
+  border-radius: 50% !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+.welcome-video-absolute {
+  position: absolute;
+  margin-right: 80px;
+  right: 50px;
+  top: 43%;
+  transform: translateY(-50%);
+  width: 450px;
+  height: 720px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 50px;
+  margin-bottom: 50px;
+  border: none !important;
+  border-radius: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .video-overlay {
@@ -251,8 +336,8 @@ html, body, #root {
   gap: 8px;
   color: #706f6f;
   margin-bottom: 16px;
-  font-family: 'IvyPresto Text', Arial, Helvetica, sans-serif;
-  font-weight: 150;
+  font-family: 'Persosnel Use', 'Myriad Pro Regular', Arial, Helvetica, sans-serif;
+  font-weight: 400;
   font-style: italic;
 }
 .kvkk-approve-button {
@@ -305,29 +390,6 @@ html, body, #root {
   justify-content: center;
 }
 
-.welcome-video-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 480px;
-  aspect-ratio: 16/9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* border-radius ve border kaldırıldı */
-  border: none;
-}
-
-.welcome-video-wrapper {
-  width: 100%;
-  max-width: 100%;
-  aspect-ratio: 16/12;
-  height: 420px;
-  min-height: 320px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .video-sound-toggle {
   position: absolute;
   bottom: 18px;
@@ -372,15 +434,7 @@ html, body, #root {
   background: rgba(0,0,0,0.85);
 }
 
-@media (max-width: 1200px) {
-  .welcome-video-absolute {
-    left: 50%;
-    transform: translateX(-35%);
-    width: 90vw;
-    max-width: 90vw;
-    border: none;
-  }
-}
+
 
 @media (max-width: 992px) {
   .welcome-container {
@@ -401,20 +455,30 @@ html, body, #root {
     min-width: 0;
     width: 100%;
   }
-  .welcome-video-wrapper {
-    max-width: 100vw;
-    aspect-ratio: 16/12;
-    height: 320px;
-    min-height: 180px;
-  }
   .welcome-video-absolute {
     position: static;
-    width: 100%;
-    max-width: 100vw;
-    margin-top: 24px;
+    width: 350px;
+    height: 350px;
+    margin: 24px auto 0 auto;
     left: 0;
     transform: none;
     top: 0;
+  }
+  
+  .welcome-video {
+    width: 350px;
+    height: 380px;
+    object-fit: cover;
+    border-radius: 50% !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  .welcome-logo {
+    width: 200px;
+    height: auto;
+    margin: 0 auto 16px auto;
+    display: block !important;
   }
 }
 
@@ -429,7 +493,7 @@ html, body, #root {
   }
   
   .welcome-logo {
-    width: 200px;
+    width: 80px;
     height: auto;
     margin: 0 auto 20px auto;
     display: block !important;
@@ -451,30 +515,23 @@ html, body, #root {
   .welcome-left {
     order: 1;
   }
-  
   .welcome-video-absolute {
     order: 2;
     position: static;
-    width: 100%;
-    max-width: 100%;
-    margin: 0;
+    width: 320px;
+    height: 400px;
+    margin: 0 auto;
     transform: none;
   }
   
-  .welcome-video-wrapper {
-    width: 100%;
-    max-width: 100%;
-    height: 350px;
-    min-height: 350px;
-    border-radius: 10px;
-    overflow: hidden;
-  }
-  
   .welcome-video {
-    width: 100%;
-    height: 100%;
+    width: 320px;
+    height: 400px;
     object-fit: cover;
-    border-radius: 10px;
+    border-radius: 50% !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
   }
   
   .action-container {
@@ -534,8 +591,9 @@ html, body, #root {
     background-position: right -20vw top 30px;
   }
   
+  
   .welcome-logo {
-    width: 150px;
+    width: 80px;
     height: auto;
     margin: 0 auto 15px auto;
     display: block !important;
@@ -551,21 +609,20 @@ html, body, #root {
     border-radius: 8px;
     padding: 8px;
   }
-  
-  .welcome-video-wrapper {
-    width: 100%;
-    max-width: 100%;
-    height: 250px;
-    min-height: 250px;
-    border-radius: 8px;
-    overflow: hidden;
+  .welcome-video-absolute {
+    width: 280px;
+    height: 450px;
+    margin: 0 auto;
   }
   
   .welcome-video {
-    width: 100%;
-    height: 100%;
+    width: 280px;
+    height: 350px;
     object-fit: cover;
-    border-radius: 8px;
+    border-radius: 50% !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
   }
   
   .action-container {
@@ -611,7 +668,7 @@ html, body, #root {
   }
   
   .welcome-logo {
-    width: 120px;
+    width: 60px;
   }
   
   .description {
@@ -619,14 +676,25 @@ html, body, #root {
     padding: 6px;
   }
   
-  .welcome-video-wrapper {
-    height: 220px;
-    min-height: 220px;
-  }
-  
   .start-button {
     font-size: 11px;
     padding: 8px 12px;
+  }
+  
+  .welcome-video-absolute {
+    width: 220px;
+    height: 350px;
+    margin: 0 auto;
+  }
+  
+  .welcome-video {
+    width: 220px;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 50% !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
   }
 }
 
@@ -650,34 +718,33 @@ html, body, #root {
   }
   
   .welcome-logo {
-    width: 180px;
+    width: 100px;
     height: auto;
     margin: 0 auto 15px auto;
     display: block !important;
   }
   
   .description {
-    font-size: 13px;
+    font-size: 13px; 
     line-height: 1.4;
     margin: 12px 0;
     text-align: center;
     padding: 0 8px;
   }
-  
-  .welcome-video-wrapper {
-    width: 100%;
-    max-width: 100%;
-    height: 280px;
-    min-height: 280px;
-    border-radius: 10px;
-    overflow: hidden;
+  .welcome-video-absolute {
+    width: 200px;
+    height: 250px;
+    margin: 0 auto;
   }
   
   .welcome-video {
-    width: 100%;
-    height: 100%;
+    width: 200px;
+    height: 250px;
     object-fit: cover;
-    border-radius: 10px;
+    border-radius: 50% !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
   }
   
   .action-container {
@@ -714,7 +781,6 @@ html, body, #root {
 .welcome-video,
 .welcome-video-fixed,
 .welcome-video-absolute,
-.welcome-video-wrapper video,
 .welcome-video video,
 video {
   border: none !important;

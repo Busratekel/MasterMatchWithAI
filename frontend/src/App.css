@@ -4,7 +4,7 @@ html, body, #root, .App {
   height: 100vh;
   margin: 0;
   padding: 0;
-  background: #c4d8df !important;
+  background: #c3d5f5 !important;
   overflow-x: hidden;
   box-sizing: border-box;
 }
@@ -79,16 +79,16 @@ html, body, #root, .App {
 }
 
 .btn {
-  background: linear-gradient(135deg, #667eea 0%, #98acb7 100%);
-  color: white;
-  border: none;
+  background: #e5ecf9;
+  color: #000;
+  border: 1px solid #e0e0e0;
   padding: 12px 30px;
-  border-radius: 25px;
+  border-radius: 0px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btn:hover {
@@ -104,8 +104,10 @@ html, body, #root, .App {
 }
 
 .btn-secondary {
-  background: #6c757d;
-  box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+  background: #e5ecf9;
+  color: #000;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btn-secondary:hover {
@@ -192,7 +194,7 @@ html, body, #root, .App {
 }
 
 .stepper-sidebar, .stepper-content-card {
-  background: #fff;
+  background: #e5ecf9;
   padding: 40px 32px;
   margin: 0;
   width: auto;

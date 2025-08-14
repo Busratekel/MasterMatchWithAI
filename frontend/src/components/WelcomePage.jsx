@@ -174,7 +174,6 @@ const WelcomePage = ({ onStart, isLoading, error, onRetry, showKvkkModal, setSho
           {renderActionButton()}
         </div>
         <div className="welcome-video-absolute">
-          <div className="welcome-video-wrapper">
             <video
               ref={videoRef}
               src={girisVideo}
@@ -183,7 +182,6 @@ const WelcomePage = ({ onStart, isLoading, error, onRetry, showKvkkModal, setSho
               controls={false}
               className="welcome-video pointer-cursor"
               playsInline
-              style={{ width: '100%', borderRadius: '20px', background: '#000' }}
               onClick={handleVideoClick}
               onEnded={handleEnded}
             />
@@ -196,10 +194,9 @@ const WelcomePage = ({ onStart, isLoading, error, onRetry, showKvkkModal, setSho
             {showStatus && (
               <div className="video-status-popup">{statusText}</div>
             )}
-          </div>
+        </div>
         </div>
       </div>
-    </div>
   );
 };
 

@@ -30,7 +30,7 @@ function VKICalculator() {
     }
   } else if (yas !== '' && Number(yas) <= 7) {
     kategori = 'Zayıf';
-    aciklama = '0-7 yaş arası için VKI hesaplanmaz.';
+    aciklama = '0-7 yaş arası için BMI hesaplanmaz.';
   }
 
   return (

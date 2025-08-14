@@ -15,7 +15,7 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #c4d8df;
+  background: #c3d5f5;
   width: 100vw;
   height: 100vh;
   padding: 20px;
@@ -23,7 +23,7 @@ html, body {
 }
 
 .stepper-content-card, .stepper-sidebar {
-  background: #fff;
+  background: #e5ecf9;
   border-radius: 20px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.10);
   padding: 32px 24px;
@@ -43,7 +43,8 @@ html, body {
 .sidebar-footer {
   width: 100%;
   margin-top: auto;
-  padding-top: 10px;
+  padding-top: 5px;
+  margin-bottom: 10px;
 }
 
 .form-navigation {
@@ -51,15 +52,77 @@ html, body {
   bottom: 32px;
   left: 0;
   width: 100%;
-  justify-content: flex-end;
   display: flex;
+  justify-content: center;
+  align-items: center;
   z-index: 1000;
+  padding: 0 20px;
+  gap: 20px;
+}
+
+.form-nav-left {
+  display: flex;
+  justify-content: flex-start;
 }
 
 .form-nav-right {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+/* Soru göstergeleri */
+.question-indicators {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex: 0 1 auto;
+  margin: 0 10px;
+}
+
+.question-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: #e3e8f0;
+  border: 2px solid #b3c7d6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.question-indicator:hover {
+  background: #d1d5db;
+  border-color: #9ca3af;
+  transform: scale(1.05);
+}
+
+.question-indicator.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: white;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  transform: scale(1.1);
+}
+
+.question-indicator.answered {
+  background: #9ca3af;
+  border-color: #9ca3af;
+  color: white;
+  box-shadow: 0 2px 8px rgba(156, 163, 175, 0.3);
+}
+
+.question-indicator.answered:hover {
+  background: #6b7280;
+  border-color: #6b7280;
+  transform: scale(1.05);
 }
 
 .options-container {
@@ -74,9 +137,13 @@ html, body {
   margin-bottom: 80px;
 }
 
+
+
+
+
 @keyframes progressBarStripes {
   0% { background-position: 0 0; }
-  100% { background-position: 32px 0; }
+  100% { background-position: 16px 0; }
 }
 
 @keyframes shine {
@@ -87,26 +154,25 @@ html, body {
 .steps-list-plain {
   list-style: none;
   padding: 0;
-  margin: 20px 0 15px 0;
+  margin: 8px 0 6px 0;
   font-family: 'IvyPresto Text', Arial, Helvetica, sans-serif;
   font-weight: 150;
   font-style: italic;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 .step-plain-item {
   color: black;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   margin-bottom: 0;
   display: flex;
   align-items: center;
   cursor: pointer;
-  background: #f4f8fa;
-  border: 2px solid #b3c7d6;
+  background: #f6f7fb;
   border-radius: 6px;
-  padding: 5px 7px;
+  padding: 4px 6px;
   transition: background 0.2s, border 0.2s, color 0.2s, box-shadow 0.2s;
   box-shadow: 0 2px 8px 0 rgba(44, 132, 255, 0.04);
   position: relative;
@@ -150,12 +216,12 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  min-width: 28px;
-  height: 28px;
-  font-size: 1.15em;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  font-size: 0.9em;
   font-weight: bold;
-  border-radius: 50%;
+  border-radius: 6px;
   background: #e3eef5;
   color: #2563eb;
   margin-right: 12px;
@@ -167,6 +233,7 @@ html, body {
   background: #2563eb;
   color: #fff;
   border: 2px solid #2563eb;
+  border-radius: 6px;
 }
 
 .step-plain-item.not-clickable .step-check-mark-left {
@@ -178,16 +245,17 @@ html, body {
 }
 
 .btn-restart-sidebar {
-  width: 100%;
-  padding: 8px 0;
-  background: linear-gradient(90deg, #4b74a2 0%, #98acb7 100%);
+  width: 70%;
+  padding: 6px 0;
+  background: linear-gradient(90deg, #102dd2 0%, #98acb7 100%);
   color: #fff;
   border: none;
   border-radius: 16px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   margin-top: 0;
+  margin-left: 65px;
   transition: background 0.2s;
   display: flex;
   align-items: center;
@@ -203,7 +271,7 @@ html, body {
   flex: 1 1 340px;
   min-width: 300px;
   max-width: 400px;
-  background: #fff;
+  background: #e5ecf9;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -219,7 +287,7 @@ html, body {
   flex: 2 1 700px;
   min-width: 400px;
   max-width: 1200px;
-  background: #fff;
+  background: #e5ecf9;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -230,47 +298,42 @@ html, body {
   left: 8px;
 }
 
-.sidebar-header {
-  margin-top: -50px !important;
-  margin-left: -20px;
-  padding-top: 0px;
-}
-
 .sidebar-content {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-/* Progress bar for sidebar */
-.sidebar-progress-bar-container {
-  background: #e3e8f0 !important;
-  height: 18px !important;
-  border-radius: 12px !important;
-  overflow: visible !important;
-  margin-top: 10px;
+
+
+/* Yeni Progress Bar */
+.new-progress-container {
+  margin: 0px 0;
+  text-align: center;
 }
 
-.sidebar-progress-bar {
-  height: 18px !important;
-  min-width: 20px !important;
-  background-image:
-    repeating-linear-gradient(135deg, rgba(255,255,255,0.35) 0px, rgba(255,255,255,0.35) 8px, transparent 8px, transparent 16px),
-    linear-gradient(90deg, #00e0ff 0%, #2563eb 50%, #7c3aed 100%);
-  background-size: 32px 32px, 100% 100%;
-  animation: progressBarStripes 0.7s linear infinite;
-  border-radius: 12px !important;
-  box-shadow: 0 2px 12px 0 rgba(44, 132, 255, 0.18) !important;
-  opacity: 1 !important;
-  display: block !important;
-  z-index: 1000 !important;
-  position: relative;
+.new-progress-bar {
+  width: 100%;
+  height: 10px;
+  background-color: #e5ecf9;
+  border-radius: 3px;
   overflow: hidden;
+  margin-bottom: 8px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
 }
 
-@keyframes progressBarStripes {
-  0% { background-position: 0 0, 0 0; }
-  100% { background-position: 32px 0, 0 0; }
+.new-progress-fill {
+  height: 100%;
+  background-image: repeating-linear-gradient(120deg, #ccd9f1 0px, #ccd9f1 8px, #ffffff 8px, #ffffff 14px);
+  background-size: 16px 100%;
+  animation: progressBarStripes 0.7s linear infinite;
+  transition: width 0.3s ease;
+}
+
+.new-progress-text {
+  font-size: 14px;
+  font-weight: 400;
+  color: #1e293b;
 }
 
 /* Soru altı çizgisi */
@@ -353,7 +416,7 @@ html, body {
     z-index: 1 !important;
   }
   
-  /* Butonları sağda sabit yap */
+  /* Butonları ve göstergeleri düzenle */
   .form-navigation {
     position: fixed !important;
     bottom: 20px !important;
@@ -364,7 +427,9 @@ html, body {
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
-    justify-content: flex-end !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 15px !important;
     z-index: 999999 !important;
     background: rgba(255, 255, 255, 0.95) !important;
     padding: 15px 20px !important;
@@ -372,6 +437,29 @@ html, body {
     backdrop-filter: blur(10px) !important;
     box-shadow: 0 4px 20px rgba(0,0,0,0.2) !important;
     pointer-events: auto !important;
+  }
+  
+  .form-nav-left {
+    display: flex !important;
+    justify-content: flex-start !important;
+  }
+  
+  .question-indicators {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex: 1 !important;
+    margin: 0 5px !important;
+    flex-wrap: wrap !important;
+  }
+  
+  .question-indicator {
+    width: 20px !important;
+    height: 20px !important;
+    border-radius: 3px !important;
+    font-size: 10px !important;
+    min-width: 20px !important;
   }
   
   .form-nav-right {
@@ -387,17 +475,17 @@ html, body {
   .form-navigation .btn,
   .form-navigation .btn-secondary,
   .form-navigation .btn-complete {
-    font-size: 0.9rem !important;
-    padding: 10px 20px !important;
-    min-width: 90px !important;
-    max-width: 120px !important;
+    font-size: 0.85rem !important;
+    padding: 8px 16px !important;
+    min-width: 80px !important;
+    max-width: 100px !important;
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
-    background: #98acb9 !important;
-    color: #fff !important;
-    border: none !important;
-    border-radius: 20px !important;
+    background: #e5ecf9 !important;
+    color: #000 !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 0px !important;
     cursor: pointer !important;
     font-weight: 500 !important;
     pointer-events: auto !important;
@@ -410,30 +498,16 @@ html, body {
 /* Desktop cihazlar (1367px ve üstü) */
 @media (min-width: 1367px) {
   /* Sidebar header'ı küçült */
-  .sidebar-header {
-    margin-top: -70px !important;
-    margin-left: -30px !important;
-    padding-top: 0px !important;
-  }
-  
+ 
   /* Logo ve başlık küçült */
-  .sidebar-header h1,
-  .sidebar-header h2,
-  .sidebar-header h3,
-  .sidebar-header .logo {
-    font-size: 1.0rem !important;
-    margin-bottom: 8px !important;
-  }
   
-  /* Progress bar margin azalt */
-  .sidebar-progress-bar-container {
-    margin-top: 5px !important;
-  }
+  
+
   
   /* Liste yukarı yaklaştır */
   .steps-list-plain {
-    margin: 12px 0 15px 0 !important;
-    gap: 10px !important;
+    margin: 5px 0 5px 0 !important;
+    gap: 13px !important;
   }
   .step-plain-text{
     font-size: 0.9rem !important;
@@ -459,11 +533,16 @@ html, body {
   .btn-restart-sidebar {
     position: relative !important;
     bottom: auto !important;
-    margin-top: 0 !important;
+    margin-top: 10px !important;
+    padding: 8px !important;
+    border-radius: 6px !important;
   }
   .sidebar-logo{
     width: 300px !important;
-    margin-left: 50px !important;
-    margin-top: 10px !important;
+    margin-left: 30px !important;
+    margin-top: -20px !important;
+    margin-bottom: 20px !important;
+    background-color: transparent !important;
+    mix-blend-mode: multiply;
   }
 }                                                    
