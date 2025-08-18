@@ -3,7 +3,7 @@ html, body, #root, .App, .results-root {
   min-height: 0 !important;
   max-height: none !important;
   overflow: visible !important;
-  background: #c4d8df !important;
+  background: #c3d5f5 !important;
 }
 
 .results-page-center {
@@ -18,12 +18,20 @@ html, body, #root, .App, .results-root {
   box-shadow: none;
   border-radius: 0;
 }
+.results-page-container{
+  background: #e5ecf9 !important;
+}
 
 .results-logo {
   display: block;
   margin: 0 auto 18px auto;
-  width: 200px;
+  width: 400px;
   height: auto;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  mix-blend-mode: multiply;
 }
 
 .results-ready-title {
@@ -32,8 +40,10 @@ html, body, #root, .App, .results-root {
   color: #111827;
   margin: 0 auto 0 auto !important;
   text-align: center;
-  padding-top: 0 !important;
+  padding-top: 10px !important;
   margin-bottom: 18px;
+  font-family: 'lory Extra Bold';
+  font-weight: 200;
 }
 
 .results-ready-subtitle {
@@ -44,6 +54,8 @@ html, body, #root, .App, .results-root {
   text-align: center;
   max-width: 700px;
   padding-top: 0 !important;
+  font-family: 'Helvetica Neue Light';
+  font-weight: 200;
 }
 
 .icon-check {
@@ -72,6 +84,8 @@ html, body, #root, .App, .results-root {
   padding: 15px 40px;
   font-size: 1.1rem;
   width: 80%;
+  font-family: 'Glory Regular';
+  font-weight: 200;
 }
 
 .result-analysis {
@@ -112,6 +126,8 @@ html, body, #root, .App, .results-root {
   }
   .result-analysis-question{
     font-size: 1.0rem !important;
+    font-family: 'Helvetica Neue Light';
+    font-weight: 200;
   }
 }
 .result-analysis-item {
@@ -142,15 +158,19 @@ html, body, #root, .App, .results-root {
   color: #111827;
   text-align: center;
   margin-bottom: 10px;
+  font-family: 'Glory Regular';
+  font-weight: 400;
 }
 
 .result-analysis-answer {
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   color: #000306;
   font-weight: 500;
   text-align: left;
   margin-bottom: 8px;
   margin-top: 0;
+  font-family: 'Helvetica Neue Light';
+  font-weight: 300;
 }
 
 .result-analysis-comment {
@@ -162,6 +182,7 @@ html, body, #root, .App, .results-root {
   font-style: normal;
   border: none;
   text-align: left;
+  font-family: 'Helvetica Neue Light';
 }
 .arrow-animate {
   display: flex;
@@ -179,8 +200,8 @@ html, body, #root, .App, .results-root {
   color: #fff;
   border: none;
   padding: 7px 56px;
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.4rem;
+  font-weight: 800;
   border-radius: 24px;
   cursor: pointer;
   transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
@@ -190,6 +211,8 @@ html, body, #root, .App, .results-root {
   align-items: center;
   justify-content: center;
   margin-bottom: 22px;
+  font-family: 'Glory Extra Bold';
+  font-weight: 800;
 }
 
 .show-results-button:hover {

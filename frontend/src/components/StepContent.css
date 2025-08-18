@@ -44,9 +44,10 @@
 .step-question-title {
   margin-top: 0 !important;
   margin-bottom: 32px !important;
-  color: #706f6f;
+  color: #99acb7;
   font-size: 1.7rem;
-  font-weight: 600;
+  font-family: 'Glory Semi Bold';
+  font-weight: 200;
   text-align: center;
   width: 100%;
   padding: 0;
@@ -550,12 +551,12 @@ select {
 
 .bmi-warning {
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 550;
+  font-family: 'Glory Semi Bold';
   text-align: center;
   margin: 32px 0 0 0;
   letter-spacing: 0.5px;
   text-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
-  font-family: 'Segoe UI', 'Arial', sans-serif;
   background: linear-gradient(90deg, #99acb7 0%, #99acb7 100%);
   background-size: 200% 200%;
   -webkit-background-clip: text;

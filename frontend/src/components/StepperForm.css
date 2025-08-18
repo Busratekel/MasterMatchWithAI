@@ -1,3 +1,25 @@
+/* === FONT TANIMLARI === */
+@font-face {
+  font-family: 'Glory Regular';
+  src: url('https://fonts.cdnfonts.com/css/glory') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Glory Extra Bold';
+  src: url('https://fonts.cdnfonts.com/css/glory') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Glory Semi Bold';
+  src: url('https://fonts.cdnfonts.com/css/glory') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+}
+
 /* === DÜZGÜN RESPONSIVE YAPISI === */
 
 /* Sayfa scroll'unu kapat */
@@ -198,18 +220,23 @@ html, body {
 .step-plain-item:hover:not(.active):not(.not-clickable) {
   background: #eaf3f8;
   border: 2.5px solid #a2bdd2;
-  color: #2563eb;
+  color: black;
 }
 
 .step-plain-text {
-  color: #4b6b7a;
+  color: black;
   flex: 1;
-  font-size: 1.1em;
+  font-size: 16px;
+  font-family: 'Glory Regular';
+  font-weight: 400;
   font-style: normal;
 }
 
 .step-plain-item.active .step-plain-text {
-  color: #4b74a2;
+  color: black;
+  font-family: 'Glory Extra Bold';
+  font-weight: 800;
+  font-size: 16px;
 }
 
 .step-check-mark-left {
@@ -219,11 +246,11 @@ html, body {
   width: 32px;
   min-width: 32px;
   height: 32px;
-  font-size: 0.9em;
+  font-size: 1.0em;
   font-weight: bold;
   border-radius: 6px;
   background: #e3eef5;
-  color: #2563eb;
+  color: black;
   margin-right: 12px;
   border: 2px solid #b3c7d6;
   transition: background 0.2s, color 0.2s, border 0.2s;
@@ -261,6 +288,7 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 6px;
+  font-family: 'Glory Regular';
 }
 
 .btn-restart-sidebar:hover {

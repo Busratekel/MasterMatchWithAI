@@ -3,7 +3,7 @@ import './ResultsReadyPage.css';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { API_ENDPOINTS } from '../config';
-import logo from '../assets/sidebarlogo.png';
+import logo from '../assets/welcomelogo.png';
 
 // Soru ve analiz eşleştirmeleri
 const QUESTIONS = [
@@ -193,44 +193,10 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
   };
 
   return (
-    <div className="results-page-center">
+    <div className="results-page-container">
       <img src={logo} alt="Logo" className="results-logo" />
-      <h1 className="results-ready-title">İşte Size Özel Yastık Analiziniz!</h1>
-      <button onClick={handleShowResultsClick} className="show-results-button" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
-        Sonuçları Göster
-        <span className="arrow-animate">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12"/>
-            <polyline points="12 5 19 12 12 19"/>
-          </svg>
-        </span>
-      </button>
-      <div className="result-analysis-list">
-        {QUESTIONS.filter(q => q.id !== 'bmi_age').map(q => {
-          const userAnswer = answers && answers[q.id];
-          if (!userAnswer) return null;
-          let answerText;
-          if (Array.isArray(userAnswer)) {
-            answerText = userAnswer.join(', ');
-          } else if (typeof userAnswer === 'object' && userAnswer !== null) {
-            answerText = Object.entries(userAnswer).map(([k, v]) => `${k}: ${v}`).join(', ');
-          } else if (typeof userAnswer === 'string' || typeof userAnswer === 'number') {
-            answerText = userAnswer;
-          } else {
-            answerText = JSON.stringify(userAnswer);
-          }
-          const analysis = getAnswerAnalysis(q.id, answerText);
-          return (
-            <div key={q.id} className="result-analysis-item">
-              <div className="result-analysis-row">
-                <div className="result-analysis-question"><b>{q.question}</b></div>
-                <div className="result-analysis-answer">
-                  {answerText}</div>
-              </div>
-              {analysis && <div className="result-analysis-comment">{analysis}</div>}
-            </div>
-          );
-        })}
+      <div className="results-page-center">
+        <h1 className="results-ready-title">İşte Size Özel Yastık Analiziniz!</h1>
         <button onClick={handleShowResultsClick} className="show-results-button" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
           Sonuçları Göster
           <span className="arrow-animate">
@@ -240,40 +206,76 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
             </svg>
           </span>
         </button>
-      </div>
-      {/* Mail popup */}
-      {showMailPopup && (
-        <div className="popup-overlay">
-          <div className="popup-content">
-            <h2 className="popup-title">Analiz Sonuçlarınızı Mail Olarak Almak İster misiniz?</h2>
-            {wantsMail === null && (
-              <div className="popup-buttons">
-                <button className="btn btn-primary" onClick={() => handleMailChoice(true)}>Evet</button>
-                <button className="btn btn-secondary" onClick={() => handleMailChoice(false)}>Hayır</button>
-              </div>
-            )}
-            {wantsMail === true && (
-              <>
-                <input
-                  type="email"
-                  className="email-value-box"
-                  placeholder="E-posta adresinizi girin"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  style={{ fontSize: '1.2rem', margin: '18px 0', width: '100%'}}
-                />
-                <div className="popup-buttons">
-                  <button className="btn btn-primary" onClick={handleSendMail} disabled={!email || isSending || !logId}>
-                    {isSending ? "Gönderiliyor..." : "Gönder"}
-                  </button>
-                  <button className="btn btn-secondary" onClick={() => setShowMailPopup(false)} disabled={isSending}>Vazgeç</button>
+        <div className="result-analysis-list">
+          {QUESTIONS.filter(q => q.id !== 'bmi_age').map(q => {
+            const userAnswer = answers && answers[q.id];
+            if (!userAnswer) return null;
+            let answerText;
+            if (Array.isArray(userAnswer)) {
+              answerText = userAnswer.join(', ');
+            } else if (typeof userAnswer === 'object' && userAnswer !== null) {
+              answerText = Object.entries(userAnswer).map(([k, v]) => `${k}: ${v}`).join(', ');
+            } else if (typeof userAnswer === 'string' || typeof userAnswer === 'number') {
+              answerText = userAnswer;
+            } else {
+              answerText = JSON.stringify(userAnswer);
+            }
+            const analysis = getAnswerAnalysis(q.id, answerText);
+            return (
+              <div key={q.id} className="result-analysis-item">
+                <div className="result-analysis-row">
+                  <div className="result-analysis-question"><b>{q.question}</b></div>
+                  <div className="result-analysis-answer">
+                    {answerText}</div>
                 </div>
-                {!logId && <div style={{color: 'red', marginTop: 8}}>Teknik bir hata oluştu, lütfen sayfayı yenileyin.</div>}
-              </>
-            )}
-          </div>
+                {analysis && <div className="result-analysis-comment">{analysis}</div>}
+              </div>
+            );
+          })}
+          <button onClick={handleShowResultsClick} className="show-results-button" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
+            Sonuçları Göster
+            <span className="arrow-animate">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </span>
+          </button>
         </div>
-      )}
+        {/* Mail popup */}
+        {showMailPopup && (
+          <div className="popup-overlay">
+            <div className="popup-content">
+              <h2 className="popup-title">Analiz Sonuçlarınızı Mail Olarak Almak İster misiniz?</h2>
+              {wantsMail === null && (
+                <div className="popup-buttons">
+                  <button className="btn btn-primary" onClick={() => handleMailChoice(true)}>Evet</button>
+                  <button className="btn btn-secondary" onClick={() => handleMailChoice(false)}>Hayır</button>
+                </div>
+              )}
+              {wantsMail === true && (
+                <>
+                  <input
+                    type="email"
+                    className="email-value-box"
+                    placeholder="E-posta adresinizi girin"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    style={{ fontSize: '1.2rem', margin: '18px 0', width: '100%'}}
+                  />
+                  <div className="popup-buttons">
+                    <button className="btn btn-primary" onClick={handleSendMail} disabled={!email || isSending || !logId}>
+                      {isSending ? "Gönderiliyor..." : "Gönder"}
+                    </button>
+                    <button className="btn btn-secondary" onClick={() => setShowMailPopup(false)} disabled={isSending}>Vazgeç</button>
+                  </div>
+                  {!logId && <div style={{color: 'red', marginTop: 8}}>Teknik bir hata oluştu, lütfen sayfayı yenileyin.</div>}
+                </>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

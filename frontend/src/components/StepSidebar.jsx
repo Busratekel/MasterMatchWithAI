@@ -63,7 +63,7 @@ const StepSidebar = ({ questions, currentStep, answeredSteps, answers, onStepCli
 
       <div className="sidebar-footer">
         <button className="btn-restart-sidebar" onClick={onRestart}>
-          Teste Yeniden Başla
+          Teste Yeniden Başlayın
         </button>
       </div>
     </div>

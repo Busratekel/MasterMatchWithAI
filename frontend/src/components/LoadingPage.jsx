@@ -1,10 +1,13 @@
 import React, { useRef, useEffect, useState } from 'react';
 import './LoadingPage.css';
 import loadingVideo from '../assets/loading-video.mp4';
+import logo from '../assets/welcomelogo.png';
+import dSleepLogo from '../assets/welcomelogo.png';
 
 const LoadingPage = React.forwardRef((props, ref) => {
   const videoRef = useRef();
   const [isMuted, setIsMuted] = useState(false); // Sesli başlasın
+  const [isPlaying, setIsPlaying] = useState(true); // Video oynatılıyor başlasın
   const [showStatus, setShowStatus] = useState(false);
   const [statusText, setStatusText] = useState('');
 
@@ -14,6 +17,16 @@ const LoadingPage = React.forwardRef((props, ref) => {
       videoRef.current.volume = isMuted ? 0 : 1.0;
     }
   }, [isMuted]);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.play();
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  }, [isPlaying]);
 
   useEffect(() => {
     // Video bittiğinde otomatik olarak diğer sayfaya geç
@@ -39,33 +52,53 @@ const LoadingPage = React.forwardRef((props, ref) => {
     });
   };
 
+  const handlePlayToggle = () => {
+    setIsPlaying((prev) => {
+      const newPlaying = !prev;
+      setStatusText(newPlaying ? 'Video Oynatılıyor' : 'Video Duraklatıldı');
+      setShowStatus(true);
+      setTimeout(() => setShowStatus(false), 1200);
+      return newPlaying;
+    });
+  };
+
   return (
-    <div className="loading-page loading-centered">
-      <div className="loading-video-wrapper">
-        <video
-          className="loading-video pointer-cursor"
-          src={loadingVideo}
-          autoPlay
-          muted={isMuted}
-          playsInline
-          ref={videoRef}
-          style={{ width: '100%', borderRadius: '20px', background: '#000' }}
-          onClick={handleSoundToggle}
-        ></video>
-        <button className={`video-sound-toggle ${isMuted ? 'muted' : 'unmuted'}`} onClick={handleSoundToggle} tabIndex={-1} aria-label="Sesi Aç/Kapat">
-          {isMuted ? <span role="img" aria-label="Ses Kapalı">🔇</span> : <span role="img" aria-label="Ses Açık">🔊</span>}
-        </button>
-        <div className="video-overlay-text">
-          {isMuted ? 'Sesi Açmak İçin Videoya veya 🔇 butonuna basın' : 'Sesi Kapatmak İçin Videoya veya 🔊 butonuna basın'}
+      <div className="loading-page loading-centered">
+        <div className="loading-container">
+          <div className="loading-left">
+            <img src={logo} alt="Logo" className="loading-logo" />
+            <div className="loading-text">
+              Size en uygun yastığı buluyoruz...
+            </div>
+          </div>
+          <div className="loading-right">
+              <video
+                className="loading-video pointer-cursor"
+                src={loadingVideo}
+                autoPlay
+                muted={isMuted}
+                playsInline
+                ref={videoRef}
+                onClick={handleSoundToggle}
+              ></video>
+                          <button className={`loading-video-play-toggle ${isPlaying ? 'playing' : 'paused'}`} onClick={handlePlayToggle} tabIndex={-1} aria-label="Video Oynat/Durdur">
+                {isPlaying ? <span role="img" aria-label="Duraklat">⏸️</span> : <span role="img" aria-label="Oynat">▶️</span>}
+              </button>
+              <button className={`loading-video-sound-toggle ${isMuted ? 'muted' : 'unmuted'}`} onClick={handleSoundToggle} tabIndex={-1} aria-label="Sesi Aç/Kapat">
+                {isMuted ? <span role="img" aria-label="Ses Kapalı">🔇</span> : <span role="img" aria-label="Ses Açık">🔊</span>}
+              </button>
+                          <div className="loading-video-overlay-text">
+                {isMuted ? '🔇 Ses Kapalı' : '🔊 Ses Açık'}
+                <br />
+                {isPlaying ? '⏸️ Video Oynatılıyor' : '▶️ Video Duraklatıldı'}
+              </div>
+              {showStatus && (
+                <div className="loading-video-status-popup">{statusText}</div>
+              )}
+              <div className="loading-video-author-text">Fzt.Teoman GÜNDÜZ</div>
+            </div>
+          </div>
         </div>
-        {showStatus && (
-          <div className="video-status-popup">{statusText}</div>
-        )}
-      </div>
-      <div className="loading-text">
-        Size en uygun yastığı buluyoruz...
-      </div>
-    </div>
   );
 });
 

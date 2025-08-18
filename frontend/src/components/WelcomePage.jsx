@@ -12,23 +12,24 @@ const WelcomePage = ({ onStart, isLoading, error, onRetry, showKvkkModal, setSho
   const [statusText, setStatusText] = useState('');
   const [isEnded, setIsEnded] = useState(false);
 
-  const handleVideoClick = () => {
+  const handlePlayToggle = () => {
     if (videoRef.current) {
       if (isEnded) {
         videoRef.current.currentTime = 0;
         videoRef.current.play();
         setIsPlaying(true);
         setIsEnded(false);
-        return;
-      }
-      if (videoRef.current.paused) {
-        videoRef.current.play();
-        setIsPlaying(true);
-        setStatusText('Oynatılıyor');
+        setStatusText('Video Oynatılıyor');
       } else {
-        videoRef.current.pause();
-        setIsPlaying(false);
-        setStatusText('Duraklatıldı');
+        if (videoRef.current.paused) {
+          videoRef.current.play();
+          setIsPlaying(true);
+          setStatusText('Video Oynatılıyor');
+        } else {
+          videoRef.current.pause();
+          setIsPlaying(false);
+          setStatusText('Video Duraklatıldı');
+        }
       }
       setShowStatus(true);
       setTimeout(() => setShowStatus(false), 1200);
@@ -136,7 +137,7 @@ const WelcomePage = ({ onStart, isLoading, error, onRetry, showKvkkModal, setSho
             <br />
             size en uygun yatağı önerecektir.
             <br />
-            MasterMatch ile zinde ve rahat bir uyku için lütfen soruları 
+            <strong>MasterMatch</strong> ile zinde ve rahat bir uyku için lütfen soruları 
             <br />
             eksiksiz ve doğru yanıtlayın.
           </p>
@@ -182,18 +183,23 @@ const WelcomePage = ({ onStart, isLoading, error, onRetry, showKvkkModal, setSho
               controls={false}
               className="welcome-video pointer-cursor"
               playsInline
-              onClick={handleVideoClick}
               onEnded={handleEnded}
             />
-            <button className={`video-sound-toggle ${isMuted ? 'muted' : 'unmuted'}`} onClick={handleSoundToggle} tabIndex={-1} aria-label="Sesi Aç/Kapat">
+            <button className={`welcome-video-play-toggle ${isPlaying ? 'playing' : 'paused'}`} onClick={handlePlayToggle} tabIndex={-1} aria-label="Video Oynat/Durdur">
+              {isPlaying ? <span role="img" aria-label="Duraklat">⏸️</span> : <span role="img" aria-label="Oynat">▶️</span>}
+            </button>
+            <button className={`welcome-video-sound-toggle ${isMuted ? 'muted' : 'unmuted'}`} onClick={handleSoundToggle} tabIndex={-1} aria-label="Sesi Aç/Kapat">
               {isMuted ? <span role="img" aria-label="Ses Kapalı">🔇</span> : <span role="img" aria-label="Ses Açık">🔊</span>}
             </button>
-            <div className="video-overlay-text">
-              {isEnded ? 'Tekrar Oynatmak İçin Dokunun' : (isPlaying ? (isMuted ? 'Sesi Açmak İçin 🔇 butonuna basın' : 'Duraklatmak İçin Videoya Dokunun') : 'Oynatmak İçin Videoya Dokunun')}
+            <div className="welcome-video-overlay-text">
+              {isMuted ? '🔇 Ses Kapalı' : '🔊 Ses Açık'}
+              <br />
+              {isPlaying ? '⏸️ Video Oynatılıyor' : '▶️ Video Duraklatıldı'}
             </div>
             {showStatus && (
-              <div className="video-status-popup">{statusText}</div>
+              <div className="welcome-video-status-popup">{statusText}</div>
             )}
+            <div className="welcome-video-author-text">Fzt.Teoman GÜNDÜZ</div>
         </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './ResultsPage.css';
 import { API_ENDPOINTS } from '../config';
-import dSleepLogo from '../assets/sidebarlogo.png';
+import dSleepLogo from '../assets/welcomelogo.png';
 
 const ResultsPage = ({ recommendation, onRestart, logId, answers }) => {
   const [showPerfectMatchModal, setShowPerfectMatchModal] = useState(false);
