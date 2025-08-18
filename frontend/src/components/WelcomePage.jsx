@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import './WelcomePage.css';
 import { API_ENDPOINTS } from '../config';
 import girisVideo from '../assets/girisekrani.mp4';
@@ -11,6 +11,41 @@ const WelcomePage = ({ onStart, isLoading, error, onRetry, showKvkkModal, setSho
   const [showStatus, setShowStatus] = useState(false);
   const [statusText, setStatusText] = useState('');
   const [isEnded, setIsEnded] = useState(false);
+
+  // Ensure autoplay works across mobile/desktop by forcing muted + playsInline
+  // and attempting play once metadata is available
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+
+    try {
+      el.muted = true;
+      el.playsInline = true;
+    } catch (_) {}
+
+    const tryPlay = () => {
+      const p = el.play();
+      if (p && typeof p.then === 'function') {
+        p.then(() => {
+          setIsPlaying(true);
+          setIsEnded(false);
+        }).catch(() => {
+          setIsPlaying(false);
+        });
+      }
+    };
+
+    if (el.readyState >= 2) {
+      tryPlay();
+    } else {
+      const onLoaded = () => tryPlay();
+      el.addEventListener('loadeddata', onLoaded, { once: true });
+    }
+
+    return () => {
+      try { el.pause(); } catch (_) {}
+    };
+  }, []);
 
   const handlePlayToggle = () => {
     if (videoRef.current) {
@@ -183,6 +218,7 @@ const WelcomePage = ({ onStart, isLoading, error, onRetry, showKvkkModal, setSho
               controls={false}
               className="welcome-video pointer-cursor"
               playsInline
+              preload="auto"
               onEnded={handleEnded}
             />
             <button className={`welcome-video-play-toggle ${isPlaying ? 'playing' : 'paused'}`} onClick={handlePlayToggle} tabIndex={-1} aria-label="Video Oynat/Durdur">
