@@ -662,6 +662,10 @@ select {
   .vki-content-wrapper {
     flex-direction: column !important;
     gap: 10px !important;
+    text-align: center !important;
+    flex-direction: column !important;
+    margin-right: 85px;
+    margin-top: -50px;
   }
   
   .vki-row {
@@ -674,6 +678,7 @@ select {
   
   .vki-value {
     font-size: 0.8rem !important;
+    margin-top: -10px;
   }
   
   select {
