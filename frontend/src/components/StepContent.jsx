@@ -17,11 +17,6 @@ function VKIBar({ vki }) {
       <div className="vki-bar-bg">
         <div className="vki-bar-indicator" style={{ left: `calc(${percent}% - 10px)` }} />
       </div>
-      <div className="vki-bar-labels">
-        <span>Zayıf</span>
-        <span>Orta</span>
-        <span>Kilolu</span>
-      </div>
     </div>
   );
 }
