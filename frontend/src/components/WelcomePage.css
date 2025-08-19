@@ -848,15 +848,15 @@ html, body, #root {
   .welcome-container {
     width: 95vw;
     max-width: 95vw;
-    margin: 0 auto;
+    margin-top: 90px;
     padding: 18px 15px;
     border-radius: 15px;
     min-height: auto;
   }
   
   .welcome-logo {
-    width: 70px;
-    height: auto;
+    width: 30%;
+    height: 70px;
     margin: 0 auto 18px auto;
     display: block !important;
   }
@@ -866,7 +866,7 @@ html, body, #root {
     line-height: 1.4;
     margin: 12px 0;
     text-align: center;
-    padding: 0 8px;
+    padding: 0px 8px;
   }
   
   .video-layout {
@@ -900,7 +900,7 @@ html, body, #root {
   .welcome-video-play-toggle {
     top: 20px;
     right: 10px;
-    width: 24px;
+    width: 34px;
     height: 24px;
     font-size: 0.7rem;
   }
@@ -944,12 +944,12 @@ html, body, #root {
 }
 
 /* 601px - 768px arası */
-@media (min-width: 601px) and (max-width: 768px) {
+/* @media (min-width: 601px) and (max-width: 768px) {
   .welcome-container {
     width: 95vw;
     max-width: 95vw;
     margin: 0 auto;
-    padding: 25px 20px;
+    padding: 55px 25px;
     border-radius: 18px;
     min-height: auto;
   }
@@ -964,7 +964,7 @@ html, body, #root {
   .description {
     font-size: 15px;
     line-height: 1.4;
-    margin: 18px 0;
+    margin: 38px 0;
     text-align: center;
     padding: 0 12px;
   }
@@ -1041,75 +1041,90 @@ html, body, #root {
     font-size: 13px;
     justify-content: center;
   }
-}
+} */
 
 /* 769px - 992px arası */
-@media (min-width: 769px) and (max-width: 992px) {
-  .welcome-container {
-    max-width: 96vw;
-    padding: 35px 25px;
-    background-size: cover;
-    overflow-x: visible !important;
-  }
+
+@media (min-width: 601px) and (max-width: 992px) {
+    .welcome-container {
+      padding: 15px 10px;
+      gap: 8px;
+    }
   
-  .description {
-    width: 100%;
-    font-size: 16px;
-  }
+    .welcome-left {
+      margin-bottom: 8px;
+    }
   
-  .video-layout {
-    flex-direction: column;
-    gap: 30px;
-  }
+    .welcome-logo {
+      margin-bottom: 8px !important;
+      width: 30%;
+    }
   
-  .welcome-right, .welcome-left {
-    min-width: 0;
-    width: 100%;
-  }
+    .description {
+      margin: 8px 0 !important;
+      line-height: 1.3;
+    }
   
-  .welcome-video-absolute {
-    position: static;
-    width: 380px;
-    height: 450px;
-    margin: 25px auto 0 auto;
-    left: 0;
-    transform: none;
-    top: 0;
-  }
+    .kvkk-container {
+      margin: 6px 0 !important;
+    }
   
-  .welcome-video {
-    width: 380px;
-    height: 450px;
-    object-fit: cover;
-    border-radius: 50% !important;
-    border: none !important;
-    outline: none !important;
-    box-shadow: none !important;
-  }
+    .consent-options {
+      margin: 6px 0 !important;
+    }
   
-  .welcome-video-play-toggle {
-    top: 30px;
-    right: 15px;
-    width: 30px;
-    height: 30px;
-    font-size: 0.9rem;
-  }
+    .action-container {
+      margin-top: 8px !important;
+      padding-top: 8px !important;
+    }
   
-  .welcome-video-sound-toggle {
-    top: 30px;
-    right: 50px;
-    width: 30px;
-    height: 30px;
-    font-size: 0.9rem;
-  }
+    .welcome-container .welcome-video-absolute {
+      position: absolute;
+      width: 90vw;
+      height: auto;
+      margin: 8px auto 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
   
-  .welcome-logo {
-    width: 180px;
-    height: auto;
-    margin: 0 auto 20px auto;
-    display: block !important;
+    .welcome-container .welcome-video {
+      width: 80vw;
+      max-width: 320px;
+      height: auto;
+    }
+  
+    .welcome-container .welcome-video-play-toggle,
+    .welcome-container .welcome-video-sound-toggle {
+      width: 30px;
+      height: 30px;
+      font-size: 1rem;
+      position: absolute;
+      top: 8px;
+    }
+    .welcome-container .welcome-video-play-toggle { right: 130px; }
+    .welcome-container .welcome-video-sound-toggle { right: 100px; }
+    .welcome-container .welcome-video-play-toggle { top: 10px; }
+    .welcome-container .welcome-video-sound-toggle { top: 40px; }
+  
+    .welcome-container .welcome-video-overlay-text {
+      top: auto !important;
+      right: auto !important;
+      bottom: 8px !important;
+      left: 8px !important;
+      font-size: 0.8rem !important;
+      padding: 3px 6px !important;
+    }
+  
+    .welcome-container .welcome-video-author-text {
+      position: relative !important;
+      bottom: auto !important;
+      left: 15% !important;
+      transform: translateX(-50%) !important;
+      margin-top: 6px !important;
+    }
   }
-}
 
 @media (min-width: 390px) and (max-width: 460px) {
   .welcome-page-background {
@@ -1395,11 +1410,43 @@ video {
 
 /* Mobile: grow toggles/overlay a bit and place author under the video inside container */
 @media (max-width: 600px) {
+  .welcome-container {
+    padding: 15px 10px;
+    gap: 8px;
+  }
+
+  .welcome-left {
+    margin-bottom: 8px;
+  }
+
+  .welcome-logo {
+    margin-bottom: 8px !important;
+    width: 30%;
+  }
+
+  .description {
+    margin: 8px 0 !important;
+    line-height: 1.3;
+  }
+
+  .kvkk-container {
+    margin: 6px 0 !important;
+  }
+
+  .consent-options {
+    margin: 6px 0 !important;
+  }
+
+  .action-container {
+    margin-top: 8px !important;
+    padding-top: 8px !important;
+  }
+
   .welcome-container .welcome-video-absolute {
     position: relative;
     width: 90vw;
     height: auto;
-    margin: 0 auto;
+    margin: 8px auto 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1420,8 +1467,10 @@ video {
     position: absolute;
     top: 8px;
   }
-  .welcome-container .welcome-video-play-toggle { right: 10px; }
-  .welcome-container .welcome-video-sound-toggle { right: 44px; }
+  .welcome-container .welcome-video-play-toggle { right: 130px; }
+  .welcome-container .welcome-video-sound-toggle { right: 100px; }
+  .welcome-container .welcome-video-play-toggle { top: 10px; }
+  .welcome-container .welcome-video-sound-toggle { top: 40px; }
 
   .welcome-container .welcome-video-overlay-text {
     top: auto !important;
@@ -1435,14 +1484,43 @@ video {
   .welcome-container .welcome-video-author-text {
     position: relative !important;
     bottom: auto !important;
-    left: 50% !important;
+    left: 15% !important;
     transform: translateX(-50%) !important;
-    margin-top: 10px !important;
+    margin-top: 6px !important;
   }
 }
 
 @media (max-width: 480px) {
-  .welcome-container .welcome-video-absolute { position: relative; }
+  .welcome-container {
+    padding: 12px 8px;
+    gap: 6px;
+  }
+
+  .welcome-logo {
+    margin-bottom: 6px !important;
+  }
+
+  .description {
+    margin: 6px 0 !important;
+  }
+
+  .kvkk-container {
+    margin: 4px 0 !important;
+  }
+
+  .consent-options {
+    margin: 4px 0 !important;
+  }
+
+  .action-container {
+    margin-top: 6px !important;
+    padding-top: 6px !important;
+  }
+
+  .welcome-container .welcome-video-absolute { 
+    position: relative;
+    margin: 6px auto 0 auto;
+  }
   .welcome-container .welcome-video-overlay-text {
     top: auto !important;
     right: auto !important;
@@ -1459,12 +1537,41 @@ video {
   .welcome-container .welcome-video-play-toggle { right: 10px; }
   .welcome-container .welcome-video-sound-toggle { right: 44px; }
   .welcome-container .welcome-video-author-text {
-    margin-top: 8px !important;
+    margin-top: 4px !important;
   }
 }
 
 @media (max-width: 390px) {
-  .welcome-container .welcome-video-absolute { position: relative; }
+  .welcome-container {
+    padding: 10px 6px;
+    gap: 4px;
+  }
+
+  .welcome-logo {
+    margin-bottom: 4px !important;
+  }
+
+  .description {
+    margin: 4px 0 !important;
+  }
+
+  .kvkk-container {
+    margin: 3px 0 !important;
+  }
+
+  .consent-options {
+    margin: 3px 0 !important;
+  }
+
+  .action-container {
+    margin-top: 4px !important;
+    padding-top: 4px !important;
+  }
+
+  .welcome-container .welcome-video-absolute { 
+    position: relative;
+    margin: 4px auto 0 auto;
+  }
   .welcome-container .welcome-video-overlay-text {
     top: auto !important;
     right: auto !important;
@@ -1481,6 +1588,166 @@ video {
   .welcome-container .welcome-video-play-toggle { right: 10px; }
   .welcome-container .welcome-video-sound-toggle { right: 44px; }
   .welcome-container .welcome-video-author-text {
-    margin-top: 6px !important;
+    margin-top: 3px !important;
+  }
+}
+
+/* 601–1200px responsive fixes */
+@media (min-width: 601px) and (max-width: 1200px) {
+  .welcome-container {
+    margin-top: 100px;
+    padding: 25px 10px;
+    gap: 10px;
+  }
+
+  .welcome-logo {
+    margin-bottom: -50px !important;
+    margin-left: 0px;
+    width: 45%;
+  }
+
+  .description {
+    margin-bottom: 0px !important;
+    margin-top: 100px;
+  }
+
+  .kvkk-container {
+    margin: 8px 0 !important;
+  }
+
+  .consent-options {
+    margin: 8px 0 !important;
+  }
+
+  .action-container {
+    margin-top: 10px !important;
+    padding-top: 10px !important;
+  }
+
+  .welcome-container .welcome-video-absolute {
+    position: relative;
+    width: min(95vw, 350px);
+    height: auto;
+    margin: 0 auto;
+    margin-top: 350px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0px;
+  }
+
+  .welcome-container .welcome-video {
+    width: 330px;
+    height: auto;
+    max-height: 60vh;
+  }
+
+  .welcome-container .welcome-video-overlay-text {
+    top: auto !important;
+    right: auto !important;
+    bottom: 8px !important;
+    left: -100px !important;
+    font-size: 0.75rem !important;
+    padding: 3px 6px !important;
+  }
+
+  .welcome-container .welcome-video-author-text {
+    position: absolute !important;
+    bottom: auto !important;
+    left: 51% !important;
+    transform: translateX(-50%) !important;
+    margin-top: 450px !important;
+  }
+  .welcome-container .welcome-video-play-toggle {
+    top: 20px;
+    right: 15px;
+    width: 30px;
+    height: 30px;
+    font-size: 1.0rem;
+  }
+  .welcome-container .welcome-video-sound-toggle {
+    top: -10px;
+    right: 50px;
+    width: 30px;
+    height: 30px;
+    font-size: 1.0rem;
+  }
+  
+  
+}
+
+/* FINAL 601–992px overrides (placed at end to win cascade) */
+@media (min-width: 601px) and (max-width: 992px) {
+  .welcome-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 30px;
+    padding: 15px;
+    border-radius: 10px;
+    min-height: auto;
+    background-size: 90%;
+    background-position: right -20vw top 30px;
+  }
+  .welcome-container .video-layout {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+  .welcome-logo {
+    width: 160px !important;
+    height: auto !important;
+    margin: auto auto auto auto !important;
+    display: block !important;
+  }
+  .description {
+    font-size: 13px !important;
+    line-height: 1.3 !important;
+    margin: 10px 0 !important;
+    text-align: center !important;
+    padding: 10px 5px !important;
+    background: #fff;
+    border-radius: 15px;
+  }
+  .welcome-container .welcome-video-absolute {
+    position: relative !important; /* make toggles anchor to this */
+    width: 280px !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    display: block !important;
+  }
+  .welcome-container .welcome-video {
+    width: 280px !important;
+    height: 350px !important;
+    object-fit: cover !important;
+  }
+  .welcome-container .welcome-video-play-toggle{
+    position: absolute !important; /* place over the video */
+    top: 10px !important;
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 1rem !important;
+    right: 10px !important;
+  }
+  .welcome-container .welcome-video-sound-toggle {
+    position: absolute !important; /* place over the video */
+    top: -15px !important;
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 1rem !important;
+    right: 44px !important;
+  }
+  .welcome-container .welcome-video-overlay-text {
+    top: auto !important;
+    right: auto !important;
+    bottom: 8px !important;
+    font-size: 0.8rem !important;
+    padding: 3px 6px !important;
+  }
+  .welcome-container .welcome-video-author-text {
+    position: relative !important;
+    bottom: auto !important;
+    left: 120% !important;
+    transform: translateX(-50%) !important;
+    margin-top: -60px !important;
   }
 }
