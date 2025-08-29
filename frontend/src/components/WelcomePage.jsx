@@ -7,62 +7,83 @@ import logo from '../assets/welcomelogo.png';
 const WelcomePage = ({ onStart, isLoading, error, onRetry, showKvkkModal, setShowKvkkModal, consent, setConsent, kvkkApproved, setKvkkApproved, kvkkMetinId, setKvkkMetinId }) => {
   const videoRef = useRef(null);
   const [isMuted, setIsMuted] = useState(true); // Başlangıçta sessiz
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [showStatus, setShowStatus] = useState(false);
   const [statusText, setStatusText] = useState('');
   const [isEnded, setIsEnded] = useState(false);
 
-  // Ensure autoplay works across mobile/desktop by forcing muted + playsInline
-  // and attempting play once metadata is available
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
-
     try {
       el.muted = true;
+      el.defaultMuted = true;
       el.playsInline = true;
+      el.setAttribute('muted', '');
+      el.setAttribute('playsinline', '');
     } catch (_) {}
 
+    const markPlay = () => { setIsPlaying(true); setIsEnded(false); };
+    const markPause = () => setIsPlaying(false);
+    const markEnded = () => { setIsEnded(true); setIsPlaying(false); };
+
+    el.addEventListener('play', markPlay);
+    el.addEventListener('pause', markPause);
+    el.addEventListener('ended', markEnded);
+
     const tryPlay = () => {
-      const p = el.play();
-      if (p && typeof p.then === 'function') {
-        p.then(() => {
-          setIsPlaying(true);
-          setIsEnded(false);
-        }).catch(() => {
-          setIsPlaying(false);
-        });
-      }
+      try {
+        const p = el.play();
+        if (p && typeof p.then === 'function') p.catch(() => {});
+      } catch (_) {}
     };
 
-    if (el.readyState >= 2) {
-      tryPlay();
-    } else {
-      const onLoaded = () => tryPlay();
-      el.addEventListener('loadeddata', onLoaded, { once: true });
-    }
+    const onLoadedData = () => tryPlay();
+    el.addEventListener('loadeddata', onLoadedData);
+
+    const onVisibility = () => { if (document.visibilityState === 'visible') tryPlay(); };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    const onFirstUserInteract = () => { tryPlay(); cleanupUserInteract(); };
+    const cleanupUserInteract = () => {
+      document.removeEventListener('click', onFirstUserInteract);
+      document.removeEventListener('touchstart', onFirstUserInteract);
+      document.removeEventListener('keydown', onFirstUserInteract);
+    };
+    document.addEventListener('click', onFirstUserInteract, { once: true });
+    document.addEventListener('touchstart', onFirstUserInteract, { once: true });
+    document.addEventListener('keydown', onFirstUserInteract, { once: true });
 
     return () => {
+      el.removeEventListener('play', markPlay);
+      el.removeEventListener('pause', markPause);
+      el.removeEventListener('ended', markEnded);
+      el.removeEventListener('loadeddata', onLoadedData);
+      document.removeEventListener('visibilitychange', onVisibility);
+      cleanupUserInteract();
       try { el.pause(); } catch (_) {}
     };
   }, []);
 
   const handlePlayToggle = () => {
     if (videoRef.current) {
+      const el = videoRef.current;
       if (isEnded) {
-        videoRef.current.currentTime = 0;
-        videoRef.current.play();
-        setIsPlaying(true);
-        setIsEnded(false);
+        el.currentTime = 0;
+        try {
+          const p = el.play();
+          if (p && typeof p.then === 'function') p.catch(() => {});
+        } catch (_) {}
         setStatusText('Video Oynatılıyor');
       } else {
-        if (videoRef.current.paused) {
-          videoRef.current.play();
-          setIsPlaying(true);
+        if (el.paused) {
+          try {
+            const p = el.play();
+            if (p && typeof p.then === 'function') p.catch(() => {});
+          } catch (_) {}
           setStatusText('Video Oynatılıyor');
         } else {
-          videoRef.current.pause();
-          setIsPlaying(false);
+          el.pause();
           setStatusText('Video Duraklatıldı');
         }
       }
@@ -159,10 +180,10 @@ const WelcomePage = ({ onStart, isLoading, error, onRetry, showKvkkModal, setSho
             <br />
             Yastık seçimi nasıl yapılmalı? 
             <br />
-            İyi bir yatak hangi özelliklerde olmalı?
+            İyi bir yastık hangi özelliklerde olmalı?
             <br />
             <br />
-            İhtiyaçlarınızı anlamak ve size en uygun yatağı önerebilmek 
+            İhtiyaçlarınızı anlamak ve size en uygun yastığı önerebilmek 
             <br />
             amacıyla bir test hazırladık. Kişisel vücut datalarınıza göre
             <br />
@@ -170,7 +191,7 @@ const WelcomePage = ({ onStart, isLoading, error, onRetry, showKvkkModal, setSho
             <br />
             değerlendiren algoritmamız 
             <br />
-            size en uygun yatağı önerecektir.
+            size en uygun yastığı önerecektir.
             <br />
             <strong>MasterMatch</strong> ile zinde ve rahat bir uyku için lütfen soruları 
             <br />
@@ -188,11 +209,13 @@ const WelcomePage = ({ onStart, isLoading, error, onRetry, showKvkkModal, setSho
                 name="consent" 
                 value="accepted"
                 checked={consent === 'accepted'}
-                onClick={() => {
-                  if (!kvkkApproved) setShowKvkkModal(true);
-                  else setConsent('accepted');
+                onChange={(e) => {
+                  if (!kvkkApproved) {
+                    setShowKvkkModal(true);
+                  } else {
+                    setConsent(e.target.value);
+                  }
                 }}
-                readOnly
               />
               Okudum, kabul ediyorum.
             </label>
@@ -214,7 +237,8 @@ const WelcomePage = ({ onStart, isLoading, error, onRetry, showKvkkModal, setSho
               ref={videoRef}
               src={girisVideo}
               autoPlay
-              muted={isMuted}
+              muted
+              defaultMuted
               controls={false}
               className="welcome-video pointer-cursor"
               playsInline

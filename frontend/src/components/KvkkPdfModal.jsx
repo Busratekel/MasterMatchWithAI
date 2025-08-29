@@ -7,7 +7,7 @@ import { API_ENDPOINTS } from '../config';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
 
-const KvkkPdfModal = ({ onClose, onApprove, logId, kvkkMetinId }) => {
+const KvkkPdfModal = ({ onClose, onApprove, onDecline, logId, kvkkMetinId }) => {
   const [kvkkText, setKvkkText] = useState('');
   const [loadingText, setLoadingText] = useState(false);
 
@@ -42,20 +42,25 @@ const KvkkPdfModal = ({ onClose, onApprove, logId, kvkkMetinId }) => {
     onClose();
   };
 
+  const handleDecline = () => {
+    if (onDecline) onDecline();
+    onClose();
+  };
+
   return (
     <div className="popup-overlay" onClick={onClose}>
-      <div className="popup-content" style={{ maxWidth: 700, width: '95%', minHeight: 500 }} onClick={e => e.stopPropagation()}>
+      <div className="popup-content" onClick={e => e.stopPropagation()}>
         <h2 className="popup-title">Açık Rıza Metni</h2>
-        <div style={{height: 400, marginBottom: 24, display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#fff', position: 'relative'}}>
+        <div className="kvkk-scroll">
           {loadingText ? <div>Yükleniyor...</div> :
-            <pre style={{whiteSpace: 'pre-wrap', textAlign: 'left', fontSize: 16, padding: 16, background: 'none', width: '100%', height: '100%', overflow: 'auto'}}>{kvkkText}</pre>
+            <pre className="kvkk-text">{kvkkText}</pre>
           }
         </div>
         <div className="kvkk-modal-buttons-row">
           <button className="kvkk-approve-button" onClick={handleApprove}>
             Kabul Et
           </button>
-          <button className="kvkk-close-button" onClick={onClose}>Reddet</button>
+          <button className="kvkk-close-button" onClick={handleDecline}>Reddet</button>
         </div>
       </div>
     </div>

@@ -6,14 +6,18 @@ import dSleepLogo from '../assets/welcomelogo.png';
 
 const LoadingPage = React.forwardRef((props, ref) => {
   const videoRef = useRef();
-  const [isMuted, setIsMuted] = useState(false); // Sesli başlasın
-  const [isPlaying, setIsPlaying] = useState(true); // Video oynatılıyor başlasın
+  const [isMuted, setIsMuted] = useState(true); // Autoplay için sessiz başla
+  const [isPlaying, setIsPlaying] = useState(true); // Autoplay açık
   const [showStatus, setShowStatus] = useState(false);
   const [statusText, setStatusText] = useState('');
 
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.muted = isMuted;
+      videoRef.current.defaultMuted = true;
+      videoRef.current.playsInline = true;
+      videoRef.current.setAttribute('muted', '');
+      videoRef.current.setAttribute('playsinline', '');
       videoRef.current.volume = isMuted ? 0 : 1.0;
     }
   }, [isMuted]);
@@ -21,7 +25,10 @@ const LoadingPage = React.forwardRef((props, ref) => {
   useEffect(() => {
     if (videoRef.current) {
       if (isPlaying) {
-        videoRef.current.play();
+        try {
+          const p = videoRef.current.play();
+          if (p && typeof p.then === 'function') p.catch(() => {});
+        } catch (_) {}
       } else {
         videoRef.current.pause();
       }
@@ -80,14 +87,15 @@ const LoadingPage = React.forwardRef((props, ref) => {
                 playsInline
                 ref={videoRef}
                 onClick={handleSoundToggle}
+                preload="auto"
               ></video>
-                          <button className={`loading-video-play-toggle ${isPlaying ? 'playing' : 'paused'}`} onClick={handlePlayToggle} tabIndex={-1} aria-label="Video Oynat/Durdur">
+              <button className={`loading-video-play-toggle ${isPlaying ? 'playing' : 'paused'}`} onClick={handlePlayToggle} tabIndex={-1} aria-label="Video Oynat/Duraklat">
                 {isPlaying ? <span role="img" aria-label="Duraklat">⏸️</span> : <span role="img" aria-label="Oynat">▶️</span>}
               </button>
               <button className={`loading-video-sound-toggle ${isMuted ? 'muted' : 'unmuted'}`} onClick={handleSoundToggle} tabIndex={-1} aria-label="Sesi Aç/Kapat">
                 {isMuted ? <span role="img" aria-label="Ses Kapalı">🔇</span> : <span role="img" aria-label="Ses Açık">🔊</span>}
               </button>
-                          <div className="loading-video-overlay-text">
+              <div className="loading-video-overlay-text">
                 {isMuted ? '🔇 Ses Kapalı' : '🔊 Ses Açık'}
                 <br />
                 {isPlaying ? '⏸️ Video Oynatılıyor' : '▶️ Video Duraklatıldı'}

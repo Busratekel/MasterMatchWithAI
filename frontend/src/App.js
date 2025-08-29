@@ -335,6 +335,7 @@ function App() {
         <KvkkPdfModal 
           onClose={() => setShowKvkkModal(false)}
           onApprove={handleKvkkApprove}
+          onDecline={() => { setConsent('declined'); setKvkkApproved(false); }}
           logId={apiResult && apiResult.log_id}
           kvkkMetinId={kvkkMetinId}
         />

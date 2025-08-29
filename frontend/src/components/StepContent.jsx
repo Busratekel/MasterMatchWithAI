@@ -172,7 +172,7 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
         {/* VKI Container */}
         <div className="vki-container">
           {localAge !== '' && Number(localAge) <= 7 ? (
-            <span className="bmi-warning">0-7 yaş arası için BMI hesaplanmaz.</span>
+            <span className="bmi-warning">0-7 yaş arası için VKI hesaplanmaz.</span>
           ) : (
             <div className="vki-content-wrapper">
               <VKIBar vki={bmiValue} />

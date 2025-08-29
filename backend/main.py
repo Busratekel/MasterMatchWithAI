@@ -380,7 +380,7 @@ QUESTIONS = [
         'info': 'Yaş, boy ve kilo gibi fiziksel bilgiler; ideal yastık yüksekliği ve destek düzeyini belirlememize yardımcı olur. Bu bilgiler yalnızca daha doğru bir öneri sunmak amacıyla kullanılacaktır.',
         'order': 1
     },
-    {'id': 'uyku_pozisyonu', 'question': 'Sizin için en rahat uyku pozisyonunu seçer misiniz?', 'type': 'checkbox', 'options': ['Sırt üstü uyku pozisyonu', 'Yüz üstü uyku pozisyonu', 'Yan uyku pozisyonu', 'Pozisyonum değişken'], 'info': 'Uyku pozisyonu, boyun ve omurga sağlığınızı doğrudan etkiler. Doğru yastık, uyku tarzınıza uyum sağlamalıdır.', 'order': 2},
+    {'id': 'uyku_pozisyonu', 'question': 'Sizin için en rahat uyku pozisyonunu seçer misiniz?', 'type': 'checkbox', 'options': ['Sırt üstü uyku pozisyonu', 'Yüz üstü uyku pozisyonu', 'Yan uyku pozisyonu', 'Hareketli Uyku Pozisyonu'], 'info': 'Uyku pozisyonu, boyun ve omurga sağlığınızı doğrudan etkiler. Doğru yastık, uyku tarzınıza uyum sağlamalıdır.', 'order': 2},
     {'id': 'ideal_sertlik', 'question': 'Sizin için ideal yastık sertliği nedir?', 'type': 'radio', 'options': ['Yumuşak', 'Orta', 'Sert', 'Orta-Sert'], 'info': 'Yastık sertliği, baş ve boynunuza ne kadar destek verdiğini belirler. Yumuşak yastıklar daha çok batarken, sert yastıklar daha sıkı bir yapı sunar. Konforunuz için size en uygun olanı seçin.', 'order': 3},
     {'id': 'uyku_düzeni', 'question': 'Uyku düzeniniz genellikle nasıldır?', 'type': 'radio', 'options': ['Uykum terleme nedeniyle bölünüyor.', 'Hiçbir problem yaşamıyorum, sabahları dinlenmiş uyanıyorum.','Nefes almakta zorlanıyorum, zaman zaman horlama problemi yaşıyorum','Reflü nedeniyle geceleri sık sık uyanıyorum.'], 'info': 'Terleme sorunu için özel yastıklar mevcuttur.', 'order': 4},
     {'id': 'tempo', 'question': 'Günlük yaşam temponuzu nasıl tanımlarsınız?', 'type': 'radio', 'options': ['Oldukça sakin bir tempom var.','Genelde orta tempoda, dengeli bir günüm oluyor.', 'Yoğun tempolu bir gün geçiriyorum.'], 'info': 'Yoğun tempolu yaşamda vücut daha fazla destek ve dinlenmeye ihtiyaç duyar. Doğru yastık, günün yorgunluğunu hafifletir.', 'order': 5},
@@ -621,33 +621,73 @@ def save_mail():
         # Kullanıcı cevaplarını al
         responses = json.loads(log.cevaplar) if log.cevaplar else {}
         
-        # Yeni fonksiyonu kullanarak önerileri hesapla
-        recommendations = calculate_pillow_recommendations(responses)
+        # Frontend'den öneri listesi geldiyse onu kullan, yoksa hesapla
+        incoming_recs = data.get('recommendations')
+        recommendations = None
+        if isinstance(incoming_recs, list) and len(incoming_recs) > 0:
+            recommendations = incoming_recs
+        else:
+            recommendations = calculate_pillow_recommendations(responses)
         
         if recommendations:
-            # Yastık önerilerini HTML'e ekle
-            yastik_html = '<h2>Size Özel Yastık Önerileriniz</h2>'
-            for i, yastik in enumerate(recommendations, 1):
-                yastik_html += f'''
-                <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
-                    <h3 style="color: #1976d2; margin-top: 0;">{i}. {yastik.get('isim', 'Yastık')}</h3>
-                    <p><strong>Özellikler:</strong></p>
-                    <ul style="margin: 5px 0;">
-                        {f'<li><strong>Sertlik:</strong> {yastik.get("sertlik", "")}</li>' if yastik.get("sertlik") else ''}
-                        {f'<li><strong>Uyku Pozisyonu:</strong> {yastik.get("uyku_pozisyonu", "")}</li>' if yastik.get("uyku_pozisyonu") else ''}
-                        {f'<li><strong>Doğal Malzeme:</strong> {yastik.get("dogal_malzeme", "")}</li>' if yastik.get("dogal_malzeme") else ''}
-                        {f'<li><strong>Uyku Düzeni:</strong> {yastik.get("uyku_düzeni", "")}</li>' if yastik.get("uyku_düzeni") else ''}
-                        {f'<li><strong>Ağrı Bölge:</strong> {yastik.get("agri_bolge", "")}</li>' if yastik.get("agri_bolge") else ''}
-                        {f'<li><strong>Yaş:</strong> {yastik.get("yas", "")}</li>' if yastik.get("yas") else ''}
-                        {f'<li><strong>Tempo:</strong> {yastik.get("tempo", "")}</li>' if yastik.get("tempo") else ''}
-                    </ul>
-                    {f'<p><strong>Link:</strong> <a href="{yastik.get("link", "")}" style="color: #1976d2;">Ürünü İncele</a></p>' if yastik.get("link") else ''}
-                </div>
-                '''
-            # Analiz ve yastık önerilerini birleştir
+            # Frontend mantığıyla aynı: Diz Arası Yastık ana listede görünmesin
+            def normalize(s: str) -> str:
+                try:
+                    return s.lower().encode('utf-8').decode('utf-8')
+                except Exception:
+                    return (s or '').lower()
+
+            def is_knee_pillow(name: str) -> bool:
+                if not name:
+                    return False
+                n = normalize(name)
+                return ('diz arası' in n) or ('diz arasi' in n)
+
+            cards_html = []
+            for yastik in recommendations:
+                name = yastik.get('isim') or 'Yastık'
+                if is_knee_pillow(name):
+                    continue  # ana listede göstermiyoruz
+                img = yastik.get('gorsel') or ''
+                href = yastik.get('link') or ''
+                uyku_poz = normalize(yastik.get('uyku_pozisyonu') or '')
+                is_perfect_match = 'yan' in uyku_poz
+
+                # Kart: İsim + Görsel (tıklanabilir) + Ürünü İncele + (opsiyonel rozet)
+                piece = '<div style="display:inline-block;vertical-align:top;margin:10px;padding:12px;border:1px solid #eee;border-radius:10px;text-align:center;max-width:240px;position:relative;">'
+                if is_perfect_match:
+                    piece += '<div style="position:absolute;top:8px;right:8px;background:#ff6f00;color:#fff;font-size:11px;font-weight:700;padding:6px 8px;border-radius:999px;line-height:1;">⭐ Mükemmel Eşleşme</div>'
+                piece += f'<div style="font-weight:600;margin-bottom:8px;color:#333;">{name}</div>'
+                if img:
+                    if href:
+                        piece += f'<a href="{href}" target="_blank" rel="noopener noreferrer"><img src="{img}" alt="{name}" style="max-width:220px;height:auto;border-radius:8px;border:1px solid #f0f0f0;"/></a>'
+                    else:
+                        piece += f'<img src="{img}" alt="{name}" style="max-width:220px;height:auto;border-radius:8px;border:1px solid #f0f0f0;"/>'
+                if href:
+                    piece += f'<div style="margin-top:10px;"><a href="{href}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:8px 14px;border-radius:6px;background:#1976d2;color:#fff;text-decoration:none;">Ürünü İncele</a></div>'
+
+                # Mükemmel Eşleşme ise aynı kutu içinde "+" ikonu ve Diz Arası Yastık mini-kartı
+                if is_perfect_match:
+                    knee_href = 'https://www.doquhome.com.tr/urun/diz-arasi-yastik-26-x-21-x-16-5-cm-beyaz'
+                    knee_img = 'https://www.doquhome.com.tr/idea/kl/05/myassets/products/672/diz-arasi-yastik04.jpg?revision=1751466969'
+                    piece += '<div style="margin-top:12px;border-top:1px dashed #e5e5e5;padding-top:10px;text-align:center;">'
+                    piece += '<div style="display:inline-flex;align-items:center;gap:6px;color:#444;font-weight:600;font-size:12px;margin-bottom:6px;">'
+                    piece += '<span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#2e7d32;color:#fff;line-height:18px;text-align:center;font-weight:700;">+</span>'
+                    piece += 'Diz Arası Yastık</div>'
+                    piece += f'<a href="{knee_href}" target="_blank" rel="noopener noreferrer" style="display:inline-block;">'
+                    piece += f'<img src="{knee_img}" alt="Diz Arası Yastık" style="max-width:180px;height:auto;border-radius:8px;border:1px solid #f0f0f0;"/>'
+                    piece += '</a>'
+                    piece += f'<div style="margin-top:8px;"><a href="{knee_href}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:6px 12px;border-radius:6px;background:#455a64;color:#fff;text-decoration:none;font-size:12px;">Ürünü İncele</a></div>'
+                    piece += '</div>'
+
+                piece += '</div>'
+                cards_html.append(piece)
+
+            yastik_html = f'''<div style="text-align:center;">{''.join(cards_html)}</div>'''
+
             complete_mail_content = f'''
             {analysis_html or ''}
-            <hr style="margin: 30px 0; border: 1px solid #ddd;">
+            <hr style="margin: 24px 0; border: 1px solid #ddd;">
             {yastik_html}
             '''
         else:

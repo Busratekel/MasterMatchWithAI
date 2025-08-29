@@ -43,6 +43,18 @@ const ResultsPage = ({ recommendation, onRestart, logId, answers }) => {
     );
   }
 
+  // Diz Arası Yastık linkini sabitle (kullanıcı isteği)
+  const kneePillowUrl = 'https://www.doquhome.com.tr/urun/diz-arasi-yastik-26-x-21-x-16-5-cm-beyaz';
+
+  // Basit Türkçe karakter normalize + kontrol: diz arası / diz arasi / diz arası yastık
+  const isKneePillow = (name) => {
+    if (!name || typeof name !== 'string') return false;
+    const lower = name.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+    // remove punctuation/extra spaces for safety
+    const cleaned = lower.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+    return cleaned.includes('diz arasi');
+  };
+
   // Ürün inceleme logu gönder
   const handleProductView = (urunIsmi) => {
     if (!logId) {
@@ -70,7 +82,8 @@ const ResultsPage = ({ recommendation, onRestart, logId, answers }) => {
 
       <div className="recommendations-list">
         {recommendation.recommendations.map((pillow) => {
-          if (!pillow || !pillow.id || (pillow.isim && pillow.isim.toLowerCase().includes('diz arası'))) return null;
+          // Knee pillow ana listede gösterilmesin
+          if (!pillow || !pillow.id || isKneePillow(pillow.isim)) return null;
 
           const pillowName = pillow.isim || "İsimsiz Yastık";
           const imageUrl = pillow.gorsel;
@@ -160,20 +173,20 @@ const ResultsPage = ({ recommendation, onRestart, logId, answers }) => {
               <div className="pillow-suggestion">
                 <h4>Seçtiğiniz Yastık: {selectedPillow}</h4>
                 <p>Bu yastıkla birlikte kullanmanızı önerdiğimiz ürün ise 'Diz Arası Yastık':</p>
-                                 <div className="diz-arasi-pillow">
-                   <img 
-                     src="https://www.doquhome.com.tr/idea/kl/05/myassets/products/672/diz-arasi-yastik04.jpg?revision=1751466969"
-                     alt="Diz Arası Yastık"
-                     onError={(e) => {
-                       e.target.onerror = null;
-                       e.target.style.display = 'none';
-                     }}
-                   />
+                <div className="diz-arasi-pillow">
+                  <img 
+                    src="https://www.doquhome.com.tr/idea/kl/05/myassets/products/672/diz-arasi-yastik04.jpg?revision=1751466969"
+                    alt="Diz Arası Yastık"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.style.display = 'none';
+                    }}
+                  />
                   <div className="pillow-info">
                     <h5>Diz Arası Yastık</h5>
                     <p>Yan uyku pozisyonunda bacaklarınız arasına yerleştirerek omurga hizasını korur ve daha rahat bir uyku sağlar.</p>
                     <a 
-                      href="https://www.doquhome.com.tr/diz-arasi-yastik" 
+                      href={kneePillowUrl}
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="pillow-cta-button"
