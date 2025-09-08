@@ -85,7 +85,7 @@ const StepperForm = ({
     } else {
       const currentSelection = Array.isArray(answers[questionId]) ? answers[questionId] : [];
       let nextSelection = [];
-      const normalOptions = question.options.filter(opt => !['Hepsi', 'Hiçbir ağrı hissetmiyorum','Pozisyonum değişken'].includes(opt));
+      const normalOptions = question.options.filter(opt => !['Hepsi', 'Hiçbir ağrı hissetmiyorum','Hareketli Uyku Pozisyonu'].includes(opt));
 
       if (clickedOption === 'Hepsi') {
         const allSelected = normalOptions.length > 0 && normalOptions.every(opt => currentSelection.includes(opt));

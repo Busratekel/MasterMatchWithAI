@@ -167,6 +167,7 @@ class Yastik(db.Model):
     agri_bolge = db.Column(db.String(350))
     yas = db.Column(db.String(50))
     tempo = db.Column(db.String(350))
+    yastik_yukseklik = db.Column(db.String(350))
 
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in Yastik.__table__.columns}
@@ -189,7 +190,7 @@ class KullaniciLog(db.Model):
 
 # --- Sabit Veriler ---
 SORU_AGIRLIKLARI = {
-    'sertlik': 1, 'bmi': 2, 'yas': 2, 'uyku_pozisyonu': 3, 'ideal_sertlik': 4,'dogal_malzeme': 5, 'tempo': 6, 'agri_bolge': 7, 'uyku_düzeni': 8,
+    'sertlik': 1, 'bmi': 2, 'yas': 2, 'uyku_pozisyonu': 4, 'ideal_sertlik': 5, 'yastik_yukseklik': 3, 'dogal_malzeme': 6, 'tempo': 7, 'agri_bolge': 8, 'uyku_düzeni': 9,
 }
 
 # --- Yardımcı Fonksiyonlar ---
@@ -269,13 +270,42 @@ def calculate_pillow_recommendations(responses):
             if bmi_cevap_normalized in bmi_yastik_normalized:
                 toplam_puan += SORU_AGIRLIKLARI.get('bmi', 2)
 
+        # Yastık yüksekliği için özel kontrol (orta-sert mantığına benzer kapsama)
+        yukseklik_cevap = responses.get('yastik_yukseklik')
+        if yukseklik_cevap and getattr(yastik, 'yastik_yukseklik', None):
+            ans_str = str(yukseklik_cevap).lower().strip()
+            yastik_val_str = str(getattr(yastik, 'yastik_yukseklik')).lower().strip()
+
+            ans_norm = normalize_turkish(ans_str)
+            yastik_norm = normalize_turkish(yastik_val_str)
+
+            # varyantları birleştir ("orta yuksek", "orta – yuksek" → "orta-yuksek")
+            ans_norm = ans_norm.replace('orta yuksek', 'orta-yuksek').replace('orta – yuksek', 'orta-yuksek')
+            yastik_norm = yastik_norm.replace('orta yuksek', 'orta-yuksek').replace('orta – yuksek', 'orta-yuksek')
+
+            if ans_norm in yastik_norm:
+                toplam_puan += SORU_AGIRLIKLARI.get('yastik_yukseklik', 3)
+            else:
+                # Kapsama kuralları:
+                # - "yuksek" seçilirse: yastık "yuksek" veya "orta-yuksek" ise eşleşir
+                # - "orta-yuksek" seçilirse: yastık "orta-yuksek" veya "yuksek" ise eşleşir
+                if ans_norm == 'yuksek' and ('yuksek' in yastik_norm or 'orta-yuksek' in yastik_norm):
+                    toplam_puan += SORU_AGIRLIKLARI.get('yastik_yukseklik', 3)
+                elif ans_norm == 'orta-yuksek' and ('orta-yuksek' in yastik_norm or 'yuksek' in yastik_norm):
+                    toplam_puan += SORU_AGIRLIKLARI.get('yastik_yukseklik', 3)
+
         # İdeal sertlik için özel kontrol
         ideal_sertlik_cevap = responses.get('ideal_sertlik')
         if ideal_sertlik_cevap and yastik.sertlik:
             ideal_sertlik_str = str(ideal_sertlik_cevap).lower().strip()
             yastik_sertlik_str = str(yastik.sertlik).lower().strip()
             
+            # Kullanıcı cevabını normalize et: Türkçe karakterler, "yastik" eki, boşluk/zülfiyet
             ideal_sertlik_normalized = normalize_turkish(ideal_sertlik_str)
+            # "yastik" veya "yastık" ekini kaldır
+            ideal_sertlik_normalized = ideal_sertlik_normalized.replace(' yastik', '').replace(' yastık', '').strip()
+            # Orta sert -> orta-sert standardize
+            ideal_sertlik_normalized = ideal_sertlik_normalized.replace('orta sert', 'orta-sert').replace('orta – sert', 'orta-sert')
             yastik_sertlik_normalized = normalize_turkish(yastik_sertlik_str)
             
             # Direkt eşleşme kontrolü
@@ -283,13 +313,13 @@ def calculate_pillow_recommendations(responses):
                 toplam_puan += agirlik
             else:
                 # İçinde geçen kelimelere göre eşleşme
-                if ideal_sertlik_cevap == 'Sert' and ('sert' in yastik_sertlik_normalized or 'orta-sert' in yastik_sertlik_normalized):
+                if ideal_sertlik_normalized == 'sert' and ('sert' in yastik_sertlik_normalized or 'orta-sert' in yastik_sertlik_normalized):
                     toplam_puan += agirlik
-                elif ideal_sertlik_cevap == 'Orta' and ('orta' in yastik_sertlik_normalized or 'orta-sert' in yastik_sertlik_normalized or 'yumusak-orta' in yastik_sertlik_normalized):
+                elif ideal_sertlik_normalized == 'orta' and ('orta' in yastik_sertlik_normalized or 'orta-sert' in yastik_sertlik_normalized or 'yumusak-orta' in yastik_sertlik_normalized):
                     toplam_puan += agirlik
-                elif ideal_sertlik_cevap == 'Yumuşak' and ('yumusak' in yastik_sertlik_normalized or 'yumusak-orta' in yastik_sertlik_normalized):
+                elif ideal_sertlik_normalized == 'yumusak' and ('yumusak' in yastik_sertlik_normalized or 'yumusak-orta' in yastik_sertlik_normalized):
                     toplam_puan += agirlik
-                elif ideal_sertlik_cevap == 'Orta-Sert' and ('orta-sert' in yastik_sertlik_normalized or 'sert' in yastik_sertlik_normalized or 'orta' in yastik_sertlik_normalized):
+                elif ideal_sertlik_normalized == 'orta-sert' and ('orta-sert' in yastik_sertlik_normalized or 'sert' in yastik_sertlik_normalized or 'orta' in yastik_sertlik_normalized):
                     toplam_puan += agirlik
 
         # Doğal malzeme alerjisi için özel kontrol
@@ -375,19 +405,19 @@ def calculate_pillow_recommendations(responses):
 QUESTIONS = [
     {
         'id': 'bmi_age',
-        'question': 'Yaşınızı, boyunuzu ve kilonuzu giriniz.',
+        'question': 'Yaşınızı, boyunuzu ve kilonuzu belirtiniz.',
         'type': 'bmi_age',
         'info': 'Yaş, boy ve kilo gibi fiziksel bilgiler; ideal yastık yüksekliği ve destek düzeyini belirlememize yardımcı olur. Bu bilgiler yalnızca daha doğru bir öneri sunmak amacıyla kullanılacaktır.',
         'order': 1
     },
     {'id': 'uyku_pozisyonu', 'question': 'Sizin için en rahat uyku pozisyonunu seçer misiniz?', 'type': 'checkbox', 'options': ['Sırt üstü uyku pozisyonu', 'Yüz üstü uyku pozisyonu', 'Yan uyku pozisyonu', 'Hareketli Uyku Pozisyonu'], 'info': 'Uyku pozisyonu, boyun ve omurga sağlığınızı doğrudan etkiler. Doğru yastık, uyku tarzınıza uyum sağlamalıdır.', 'order': 2},
-    {'id': 'ideal_sertlik', 'question': 'Sizin için ideal yastık sertliği nedir?', 'type': 'radio', 'options': ['Yumuşak', 'Orta', 'Sert', 'Orta-Sert'], 'info': 'Yastık sertliği, baş ve boynunuza ne kadar destek verdiğini belirler. Yumuşak yastıklar daha çok batarken, sert yastıklar daha sıkı bir yapı sunar. Konforunuz için size en uygun olanı seçin.', 'order': 3},
-    {'id': 'uyku_düzeni', 'question': 'Uyku düzeniniz genellikle nasıldır?', 'type': 'radio', 'options': ['Uykum terleme nedeniyle bölünüyor.', 'Hiçbir problem yaşamıyorum, sabahları dinlenmiş uyanıyorum.','Nefes almakta zorlanıyorum, zaman zaman horlama problemi yaşıyorum','Reflü nedeniyle geceleri sık sık uyanıyorum.'], 'info': 'Terleme sorunu için özel yastıklar mevcuttur.', 'order': 4},
-    {'id': 'tempo', 'question': 'Günlük yaşam temponuzu nasıl tanımlarsınız?', 'type': 'radio', 'options': ['Oldukça sakin bir tempom var.','Genelde orta tempoda, dengeli bir günüm oluyor.', 'Yoğun tempolu bir gün geçiriyorum.'], 'info': 'Yoğun tempolu yaşamda vücut daha fazla destek ve dinlenmeye ihtiyaç duyar. Doğru yastık, günün yorgunluğunu hafifletir.', 'order': 5},
-    {'id': 'agri_bolge', 'question': 'Sabahları belirli bir bölgede ağrı hissediyor musunuz?', 'type': 'checkbox', 'options': ['Hiçbir ağrı hissetmiyorum', 'Bel', 'Omuz', 'Boyun', 'Hepsi'], 'info': 'Boyun, omuz veya bel ağrısı; yanlış yastık seçiminden kaynaklanıyor olabilir. Vücudunuzu dinleyin, ihtiyacınıza uygun yastığı seçin.', 'order': 6},
-    {'id': 'dogal_malzeme', 'question': 'Doğal malzemelere (kaz tüyü,yün,bambu,pamuk gibi) karşı alerjiniz veya hassasiyetiniz var mı ?', 'type': 'checkbox', 'options': ['Evet,bu tür doğal malzemelere karşı alerjim,hassasiyetim var', 'Hayır,yok'], 'info': 'Bazı kişiler doğal dolgu malzemelerine (kaz tüyü,yün,bambu,pamuk gibi) karşı alerjik reaksiyon veya hassasiyet gösterebilir.Bu kişiler için,elyaf dolgulu veya visco sünger dolgulu ürünlerin kullanımı daha sağlıklı ve konforlu bir tercih olabilir', 'order': 7},
-    
-    {'id': 'sertlik', 'question': 'Yatak sertlik derecenizi belirtir misiniz?', 'type': 'radio', 'options': ['Yumuşak Yatak', 'Orta Yatak', 'Sert Yatak'], 'info': 'Yatak sertliği, yastığın yüksekliği ve dolgunluğu ile uyumlu olmalı. Uyumlu ikili, daha sağlıklı bir uyku sağlar.', 'order': 8}
+    {'id': 'ideal_sertlik', 'question': 'Sizin için ideal yastık sertliği nedir?', 'type': 'radio', 'options': ['Yumuşak Yastık', 'Orta-Sert Yastık', 'Sert Yastık'], 'info': 'Yastık sertliği, baş ve boynunuza ne kadar destek verdiğini belirler. Yumuşak yastıklar daha çok batarken, sert yastıklar daha sıkı bir yapı sunar. Konforunuz için size en uygun olanı seçin.', 'order': 3},
+    {'id': 'yastik_yukseklik', 'question': 'Sizin için ideal yastık yüksekliği hangisi?', 'type': 'radio', 'options': ['Alçak', 'Orta-Yüksek', 'Yüksek'], 'info': 'Yastığınızın yüksekliği, omurganızın doğru hizalanmasını sağlar.Çok alçak ya da çok yüksek yastıklar, boyun ve sırt ağrılarına yol açabilir','order': 4},
+    {'id': 'uyku_düzeni', 'question': 'Uyku düzeniniz genellikle nasıldır?', 'type': 'radio', 'options': ['Uykum terleme nedeniyle bölünüyor.', 'Hiçbir problem yaşamıyorum, sabahları dinlenmiş uyanıyorum.','Nefes almakta zorlanıyorum, zaman zaman horlama problemi yaşıyorum','Reflü nedeniyle geceleri sık sık uyanıyorum.'], 'info': 'Terleme sorunu için özel yastıklar mevcuttur.', 'order': 5},
+    {'id': 'tempo', 'question': 'Günlük yaşam temponuzu nasıl tanımlarsınız?', 'type': 'radio', 'options': ['Oldukça sakin bir tempom var.','Genelde orta tempoda, dengeli bir günüm oluyor.', 'Yoğun tempolu bir gün geçiriyorum.'], 'info': 'Yoğun tempolu yaşamda vücut daha fazla destek ve dinlenmeye ihtiyaç duyar. Doğru yastık, günün yorgunluğunu hafifletir.', 'order': 6},
+    {'id': 'agri_bolge', 'question': 'Sabahları belirli bir bölgede ağrı hissediyor musunuz?', 'type': 'checkbox', 'options': ['Hiçbir ağrı hissetmiyorum', 'Sadece Bel Ağrısı', 'Sadece Omuz Ağrısı', 'Sadece Boyun Ağrısı', 'Hepsi'], 'info': 'Boyun, omuz veya bel ağrısı; yanlış yastık seçiminden kaynaklanıyor olabilir. Vücudunuzu dinleyin, ihtiyacınıza uygun yastığı seçin.', 'order': 7},
+    {'id': 'dogal_malzeme', 'question': 'Doğal malzemelere (kaz tüyü,yün,bambu,pamuk gibi) karşı alerjiniz veya hassasiyetiniz var mı ?', 'type': 'checkbox', 'options': ['Hayır,yok', 'Evet,bu tür doğal malzemelere karşı alerjim,hassasiyetim var'], 'info': 'Bazı kişiler doğal dolgu malzemelerine (kaz tüyü,yün,bambu,pamuk gibi) karşı alerjik reaksiyon veya hassasiyet gösterebilir.Bu kişiler için,elyaf dolgulu veya visco sünger dolgulu ürünlerin kullanımı daha sağlıklı ve konforlu bir tercih olabilir', 'order': 8},
+    {'id': 'sertlik', 'question': 'Yatak sertlik derecenizi belirtir misiniz?', 'type': 'radio', 'options': ['Yumuşak Yatak', 'Orta Yatak', 'Sert Yatak'], 'info': 'Yatak sertliği, yastığın yüksekliği ve dolgunluğu ile uyumlu olmalı. Uyumlu ikili, daha sağlıklı bir uyku sağlar.', 'order': 9}
 ]
 
 # --- API Endpoint'leri ---

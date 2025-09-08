@@ -9,6 +9,7 @@ import ResumePopup from './components/ResumePopup';
 import KvkkPdfModal from './components/KvkkPdfModal';
 import { API_ENDPOINTS } from './config';
 import { ToastContainer } from 'react-toastify';
+import splashImage from './assets/splash.png';
 
 // --- KONFİGÜRASYON ---
 
@@ -18,7 +19,7 @@ function App() {
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [questionError, setQuestionError] = useState(null);
-  const [currentPage, setCurrentPage] = useState('welcome');
+  const [currentPage, setCurrentPage] = useState('splash');
   const [showResumePopup, setShowResumePopup] = useState(false);
   const [popupMode, setPopupMode] = useState('resume'); // 'resume' veya 'restart_only'
 
@@ -79,6 +80,12 @@ function App() {
           if (!isNaN(savedCurrentStep)) setCurrentStep(savedCurrentStep);
           setAnsweredSteps(savedAnsweredSteps);
         }
+      } else {
+        // Kayıtlı durum yoksa splash ekranından 4 saniye sonra welcome'a geç
+        setCurrentPage('splash');
+        setTimeout(() => {
+          setCurrentPage('welcome');
+        }, 4000);
       }
     } catch (error) {
       handleRestart();
@@ -129,9 +136,9 @@ function App() {
     }
   }, [currentPage, answers, currentStep, answeredSteps]);
 
-  // Durum değiştiğinde localStorage'a kaydet, ancak sadece welcome sayfasında değilsek veya cevaplar varsa
+  // Durum değiştiğinde localStorage'a kaydet, ancak sadece welcome/splash sayfasında değilsek veya cevaplar varsa
   useEffect(() => {
-    if (currentPage !== 'welcome' || Object.keys(answers).length > 0) {
+    if ((currentPage !== 'welcome' && currentPage !== 'splash') || Object.keys(answers).length > 0) {
       saveStateToStorage();
     }
   }, [currentPage, answers, saveStateToStorage]);
@@ -247,6 +254,10 @@ function App() {
       return <ResumePopup onResume={handleResume} onRestart={handleRestart} mode={popupMode} />;
     }
     switch (currentPage) {
+      case 'splash':
+        return (
+            <img src={splashImage} alt="Splash" style={{ maxWidth: '85vw', maxHeight: '85vh', objectFit: 'contain' }} />
+        );
       case 'welcome':
         return (
           <WelcomePage

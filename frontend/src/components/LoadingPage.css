@@ -175,7 +175,7 @@
 
 .loading-video-sound-toggle {
   position: absolute;
-  top: 0%;
+  top: -5%;
   right: 40%;
   background: rgba(255,255,255,0.9);
   color: #333;
@@ -266,8 +266,8 @@
 
 .loading-video-author-text {
   position: absolute;
-  bottom: -50px;
-  left: 51%;
+  bottom: -45px;
+  left: 44%;
   transform: translateX(-50%);
   color: #000;
   font-size: 1rem;

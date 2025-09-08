@@ -535,7 +535,7 @@ html, body {
   /* Liste yukarı yaklaştır */
   .steps-list-plain {
     margin: 5px 0 5px 0 !important;
-    gap: 13px !important;
+    gap: 8px !important;
   }
   .step-plain-text{
     font-size: 0.9rem !important;

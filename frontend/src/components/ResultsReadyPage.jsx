@@ -9,7 +9,7 @@ import logo from '../assets/welcomelogo.png';
 const QUESTIONS = [
   {
     id: 'bmi_age',
-    question: 'Yaşınızı, boyunuzu ve kilonuzu giriniz.',
+    question: 'Yaşınızı, boyunuzu ve kilonuzu belirtiniz.',
     info: 'Yaş, boy ve kilo gibi fiziksel bilgiler; ideal yastık yüksekliği ve destek düzeyini belirlememize yardımcı olur. Bu bilgiler yalnızca daha doğru bir öneri sunmak amacıyla kullanılacaktır.'
   },
   {
@@ -57,7 +57,7 @@ function getAnswerAnalysis(qid, answer) {
       if (answer.includes('Yan')) return 'Yan uyku pozisyonunu tercih edenler için, boyun ve omurga hizasını koruyan destekli yastıklar daha rahat bir uyku sağlar.';
       if (answer.includes('Sırt')) return 'Sırt üstü uyuyanlar için orta yükseklikte yastıklar, baş ve boyun için daha dengeli bir destek sağlar.';
       if (answer.includes('Yüz')) return 'Yüz üstü uyuyanlar için ince ve yumuşak yapıda yastıklar daha konforlu olur.';
-      if (answer.includes('Pozisyonum değişken')) return 'Uyku pozisyonu sık sık değişenler için, farklı bölgelere uyum sağlayan esnek yapılı yastıklar ideal bir seçenek olur.';
+      if (answer.includes('Hareketli Uyku Pozisyonu')) return 'Uyku pozisyonu sık sık değişenler için, farklı bölgelere uyum sağlayan esnek yapılı yastıklar ideal bir seçenek olur.';
       break;
     case 'uyku_düzeni':
       if (answer.includes('terleme')) return 'Terleme sorununuz için nefes alabilen, serinletici ve pamuk kumaşlı yastıklar önerilir.';
@@ -71,9 +71,9 @@ function getAnswerAnalysis(qid, answer) {
       if (answer.includes('sakin')) return 'Sakin tempolu günlerde, hafif ve nefes alabilir yapıda, konfor odaklı yastıklar tercih edilmelidir.';
       break;
     case 'agri_bolge':
-      if (answer.includes('Bel')) return 'Bel ağrısı yaşamamak için omurga hizasını korumak oldukça önemlidir.';
-      if (answer.includes('Omuz')) return 'Omuz ağrıları, genellikle boyun desteği sağlamayan yastıklar kullanıldığında ortaya çıkan ağrılardır, boyun desteği sağlayan yastık kullanılması ideal bir uyku sağlar.';
-      if (answer.includes('Boyun')) return 'Boyun bölgesine tam destek sağlayan yastık kullanımı, boyun ağrılarının azalmasına yardımcı olur.';
+      if (answer.includes('Sadece Bel Ağrısı')) return 'Bel ağrısı yaşamamak için omurga hizasını korumak oldukça önemlidir.';
+      if (answer.includes('Sadece Omuz Ağrısı')) return 'Omuz ağrıları, genellikle boyun desteği sağlamayan yastıklar kullanıldığında ortaya çıkan ağrılardır, boyun desteği sağlayan yastık kullanılması ideal bir uyku sağlar.';
+      if (answer.includes('Sadece Boyun Ağrısı')) return 'Boyun bölgesine tam destek sağlayan yastık kullanımı, boyun ağrılarının azalmasına yardımcı olur.';
       if (answer.includes('Hepsi')) return 'Hem omurga hizasını, hem de boyun desteğini bir arada sağlamak, rahat bir uyku için oldukça önemlidir.';
       if (answer.includes('Hiçbir ağrı')) return 'Ağrınız bulunmuyorsa orta sertlikte ve klasik formda yastıklar günlük kullanım için uygundur.';
       break;
@@ -84,9 +84,13 @@ function getAnswerAnalysis(qid, answer) {
       break;
     case 'ideal_sertlik':
       if (answer.includes('Yumuşak')) return 'Yumuşak yastıklar boyun desteği sağlarken konfor sunar.';
-              if (answer.includes('Orta')) return 'Orta sertlikteki yastıklar dengeyi sağlar.';
-        if (answer.includes('Sert')) return 'Sert yastıklar maksimum boyun desteği sağlar.';
-        if (answer.includes('Yumuşak-Orta')) return 'Yumuşak-orta yastıklar hem konfor hem destek sağlar.';
+      if (answer.includes('Orta-Sert')) return 'Orta-sert yastıklar denge ile birlikte daha fazla destek sağlar.';
+      if (answer.includes('Sert')) return 'Sert yastıklar maksimum boyun desteği sağlar.';
+      break;
+    case 'yastik_yukseklik':
+      if (answer.includes('Alçak')) return 'Alçak yükseklik; yüzüstü uyuyanlar veya ince yastık sevenler için daha uygundur.';
+      if (answer.includes('Orta')) return 'Orta yükseklik çoğu kullanıcı için dengeli bir seçimdir; boyun hizasını rahatça korur.';
+      if (answer.includes('Yüksek')) return 'Yüksek yükseklik; geniş omuz yapısı olan veya yan uyuyan kullanıcılar için boynu destekler.';
       break;
     case 'sertlik':
       if (answer.includes('Yumuşak')) return 'Yumuşak yataklarda yumuşak yastıklar tercih edilebilir.';

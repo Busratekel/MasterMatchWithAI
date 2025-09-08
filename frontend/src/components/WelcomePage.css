@@ -1,3 +1,6 @@
+@import url('https://fonts.cdnfonts.com/css/helvetica-neue-9');
+@import url('https://fonts.cdnfonts.com/css/myriad-pro');
+
 @font-face {
   font-family: 'Helvetica Neue Light';
   src: url('https://fonts.cdnfonts.com/css/helvetica-neue-9') format('woff2');
@@ -131,7 +134,7 @@ html, body, #root {
 
 .description {
   font-family: 'Helvetica Neue Light';
-  font-weight: 200;
+  font-weight: 300;
   font-style: normal;
   font-size: 16px;
   line-height: 1.4;
@@ -166,7 +169,7 @@ html, body, #root {
 }
 
 .consent-options label {
-  font-family: 'Myriad Pro Regular';
+  font-family: 'Myriad Pro', 'Helvetica Neue', Arial, sans-serif;
   font-weight: 400; /* Regular */
   font-size: 16px;
   color:  #3982aa !important;
@@ -193,7 +196,7 @@ html, body, #root {
   border: 1px solid #c3d5f5;
   padding: 0px 16px 0px 44px;
   font-size: 15px;
-  font-family: 'Glory Semi Bold', 'Glory', Arial, sans-serif;
+  font-family: 'Myriad Pro', Arial, sans-serif;
   font-weight: 600;
   border-radius: 10px;
   display: inline-flex;
@@ -208,7 +211,7 @@ html, body, #root {
 }
 
 .start-button:disabled {
-  background-color: #ccc;
+  background-color: #fff;
   cursor: not-allowed;
   animation: none;
 }
@@ -254,12 +257,12 @@ html, body, #root {
 }
 
 .welcome-video {
-  width: 443px;
-  height: 600px;
+  width: 423px;
+  height: 550px;
   object-fit: cover;
-  background: #000;
+  background: transparent;
   border: none !important;
-  border-radius: 50% !important;
+  border-radius: 0 !important;
   outline: none !important;
   box-shadow: none !important;
 }
@@ -1373,7 +1376,7 @@ video {
 @media (min-width: 1200px) {
   /* Desktop overrides */
   .welcome-video-play-toggle {
-    top: 95px;
+    top: 120px;
     right: 15px;
     width: 40px;
     height: 40px;
@@ -1381,7 +1384,7 @@ video {
   }
   
   .welcome-video-sound-toggle {
-    top: 60px;
+    top: 80px;
     right: 60px;
     width: 40px;
     height: 40px;
@@ -1389,14 +1392,14 @@ video {
   }
   
   .welcome-video-overlay-text {
-    bottom: 15px;
-    right: -125px;
+    bottom: 20px;
+    right: -120px;
     font-size: 0.9rem;
     padding: 5px 10px;
   }
   .welcome-video-author-text {
-    bottom: 10px;
-    left: 50%;
+    bottom: 30px;
+    left: 53%;
     transform: translateX(-50%);
     color: #000;
     font-size: 1rem;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Tooltip from '@mui/material/Tooltip';
 import Slider from '@mui/material/Slider';
 import './StepContent.css';
 
@@ -172,13 +173,36 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
         {/* VKI Container */}
         <div className="vki-container">
           {localAge !== '' && Number(localAge) <= 7 ? (
-            <span className="bmi-warning">0-7 yaş arası için VKI hesaplanmaz.</span>
+            <span className="bmi-warning">0-7 yaş arası için VKI değeri hesaplanamaz.</span>
           ) : (
             <div className="vki-content-wrapper">
               <VKIBar vki={bmiValue} />
               {bmiValue && (
-                <div className="vki-value">
-                  Vücut Kitle İndeksi: 
+                <div className="vki-value" style={{ display: 'flex', alignItems: 'center', gap: 10, whiteSpace: 'nowrap' }}>
+                  <Tooltip
+                    title={'VKİ (Vücut Kitle İndeksi), kilonuzun boyunuza oranıdır. Referans: 18.5 altı Zayıf, 18.5–24.9 Orta, 25 ve üzeri Kilolu.'}
+                    placement="top"
+                    arrow
+                  >
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 24,
+                        height: 24,
+                        borderRadius: '50%',
+                        background: '#e3f2fd',
+                        color: '#1976d2',
+                        fontSize: 18,
+                        fontWeight: 700,
+                        cursor: 'help'
+                      }}
+                    >
+                      ?
+                    </span>
+                  </Tooltip>
+                  Vücut Kitle İndeksi:
                   <span className="vki-value-box">{bmiValue}</span>
                 </div>
               )}
@@ -195,16 +219,16 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
     if (question.id === 'uyku_pozisyonu') {
       const current = Array.isArray(answer) ? answer : [];
       
-      // Eğer Pozisyonum değişken seçildiyse, sadece onu seçili yap
-      if (option === 'Pozisyonum değişken') {
-        const newAnswer = current.includes(option) ? [] : ['Pozisyonum değişken'];
+      // Eğer Hareketli Uyku Pozisyonu seçildiyse, sadece onu seçili yap
+      if (option === 'Hareketli Uyku Pozisyonu') {
+        const newAnswer = current.includes(option) ? [] : ['Hareketli Uyku Pozisyonu'];
         onAnswerChange(question.id, newAnswer);
         return;
       }
-      // Diğerlerinden biri seçildiyse, Pozisyonum değişkeni kaldır ve klasik checkbox mantığı uygula
+      // Diğerlerinden biri seçildiyse, Hareketli Uyku Pozisyonu kaldır ve klasik checkbox mantığı uygula
       let newAnswer = current.includes(option)
         ? current.filter(opt => opt !== option)
-        : [...current.filter(opt => opt !== 'Pozisyonum değişken'), option];
+        : [...current.filter(opt => opt !== 'Hareketli Uyku Pozisyonu'), option];
       onAnswerChange(question.id, newAnswer);
       return;
     }
@@ -229,7 +253,7 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
 
       if (option === 'Hepsi') {
         // Hepsi seçili sayılması için: tüm normal seçenekler seçiliyse
-        const normalOptions = question.options.filter(opt => !['Hepsi', 'Hiçbir ağrı hissetmiyorum', 'Pozisyonum değişken'].includes(opt));
+        const normalOptions = question.options.filter(opt => !['Hepsi', 'Hiçbir ağrı hissetmiyorum', 'Hareketli Uyku Pozisyonu'].includes(opt));
         return normalOptions.length > 0 && normalOptions.every(opt => currentAnswer.includes(opt));
       }
       return currentAnswer.includes(option);
@@ -249,15 +273,30 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
       <div className="step-content-actions">
       <div className={`options-container ${isTwoOptions ? 'two-options' : ''} ${question.type === 'checkbox' ? 'checkbox-options' : ''}`}>
         {question.options && question.options.map((option, index) => {
-          // İdeal sertlik sorusu için sadece 3 temel seçenek göster
-          if (question.id === 'ideal_sertlik' && !['Yumuşak', 'Orta', 'Sert'].includes(option)) {
-            return null;
+          // İdeal sertlik sorusu için sadece temel seçenekleri göster ("Yastık" ekini temizle)
+          if (question.id === 'ideal_sertlik') {
+            const base = option.replace(/\s*yastık$/i, '');
+            if (!['Yumuşak', 'Orta-Sert', 'Sert'].includes(base)) {
+              return null;
+            }
           }
           
           // Option metnini dosya adına çevir
           const getImageSrc = (option) => {
-            
-            return require(`../assets/${option
+            // Yastık yüksekliği için özel dosya adları kullan
+            if (question.id === 'yastik_yukseklik') {
+              const map = {
+                'Alçak': 'yukseklikalcak',
+                'Orta': 'yukseklikorta',
+                'Yüksek': 'yukseklikyuksek'
+              };
+              const key = map[option] || 'yukseklikorta';
+              return require(`../assets/${key}.png`);
+            }
+            // "Yastık" ekini temizle ve görsel eşleştirmesi yap
+            const noSuffix = option.replace(/\s*yastık$/i, '');
+            const mapped = noSuffix === 'Orta-Sert' ? 'Orta' : noSuffix;
+            return require(`../assets/${mapped
               .toLowerCase()
               .replace(/ /g, '')
               .replace(/ı/g, 'i')
