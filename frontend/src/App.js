@@ -85,7 +85,7 @@ function App() {
         setCurrentPage('splash');
         setTimeout(() => {
           setCurrentPage('welcome');
-        }, 4000);
+        }, 2000);
       }
     } catch (error) {
       handleRestart();

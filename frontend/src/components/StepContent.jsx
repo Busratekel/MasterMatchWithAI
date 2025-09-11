@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Tooltip from '@mui/material/Tooltip';
+import ClickAwayListener from '@mui/material/ClickAwayListener';
 import Slider from '@mui/material/Slider';
 import './StepContent.css';
 
@@ -28,6 +29,7 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
   const [localHeight, setLocalHeight] = useState(minBoy);
   const [localWeight, setLocalWeight] = useState(minKilo);
   const [bmiValue, setBmiValue] = useState('');
+  const [vkiInfoOpen, setVkiInfoOpen] = useState(false);
   const isFirstMount = useRef(true);
 
   useEffect(() => {
@@ -179,10 +181,16 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
               <VKIBar vki={bmiValue} />
               {bmiValue && (
                 <div className="vki-value" style={{ display: 'flex', alignItems: 'center', gap: 10, whiteSpace: 'nowrap' }}>
+                  <ClickAwayListener onClickAway={() => setVkiInfoOpen(false)}>
                   <Tooltip
                     title={'VKİ (Vücut Kitle İndeksi), kilonuzun boyunuza oranıdır. Referans: 18.5 altı Zayıf, 18.5–24.9 Orta, 25 ve üzeri Kilolu.'}
                     placement="top"
                     arrow
+                    open={vkiInfoOpen}
+                    onClose={() => setVkiInfoOpen(false)}
+                    disableHoverListener
+                    disableFocusListener
+                    disableTouchListener
                   >
                     <span
                       style={{
@@ -198,10 +206,20 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
                         fontWeight: 700,
                         cursor: 'help'
                       }}
+                      onMouseEnter={() => setVkiInfoOpen(true)}
+                      onMouseLeave={() => setVkiInfoOpen(false)}
+                      onFocus={() => setVkiInfoOpen(true)}
+                      onBlur={() => setVkiInfoOpen(false)}
+                      onClick={(e) => { e.stopPropagation(); setVkiInfoOpen(prev => !prev); }}
+                      onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); setVkiInfoOpen(prev => !prev); }}
+                      onClickCapture={(e) => e.stopPropagation()}
+                      role="button"
+                      aria-label="VKI bilgisi"
                     >
                       ?
                     </span>
                   </Tooltip>
+                  </ClickAwayListener>
                   Vücut Kitle İndeksi:
                   <span className="vki-value-box">{bmiValue}</span>
                 </div>
