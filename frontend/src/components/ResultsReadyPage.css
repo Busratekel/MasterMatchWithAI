@@ -26,6 +26,7 @@ html, body, #root, .App, .results-root {
   display: block;
   margin: 0 auto 18px auto;
   width: 400px;
+  margin-top: auto;
   height: auto;
   background: transparent !important;
   border: none !important;
@@ -107,7 +108,7 @@ html, body, #root, .App, .results-root {
 }
 @media (max-width: 1366px) {
   .result-analysis-list{
-    margin-top: -10px !important;
+    margin-top: -auto !important;
   }
   .result-analysis-item{
     padding-bottom: 10px !important;
@@ -122,12 +123,20 @@ html, body, #root, .App, .results-root {
     margin-bottom: 0px !important;
   }
   .show-results-button{
-    margin-top: 0px !important;
+    margin-top: auto !important;
   }
   .result-analysis-question{
     font-size: 1.0rem !important;
     font-family: 'Helvetica Neue Light';
     font-weight: 200;
+  }
+  .results-logo {
+    font-size: 1.0rem !important;
+    margin-top: auto !important;
+  }
+  .results-ready-title{
+    font-size: 1.0rem !important;
+    margin-top: auto !important;
   }
 }
 .result-analysis-item {

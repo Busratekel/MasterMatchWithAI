@@ -175,20 +175,20 @@
 
 .loading-video-sound-toggle {
   position: absolute;
-  top: -5%;
-  right: 20%;
+  top: 0%;
+  right: 35%;
   background: rgba(255,255,255,0.9);
   color: #333;
   border: none;
   border-radius: 50%;
-  width: 8%;
-  height: 8%;
+  width: 5%;
+  height: 5%;
   min-width: 36px;
   min-height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   cursor: pointer;
   z-index: 100;
   transition: all 0.3s ease;
@@ -205,20 +205,20 @@
 
 .loading-video-play-toggle {
   position: absolute;
-  top: 2%;
-  right: 10%;
+  top: 6%;
+  right: 28%;
   background: rgba(255,255,255,0.9);
   color: #333;
   border: none;
   border-radius: 50%;
-  width: 8%;
-  height: 8%;
+  width: 5%;
+  height: 5%;
   min-width: 36px;
   min-height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   cursor: pointer;
   z-index: 100;
   transition: all 0.3s ease;
@@ -551,7 +551,6 @@
     width: 150px;
     height: auto;
     margin: 20px auto 10px auto;
-    margin-top: 20px;
   }
   
   .loading-title {
@@ -630,7 +629,6 @@
     width: 180px;
     height: auto;
     margin: 0 auto 8px auto;
-    margin-top: -80px;
   }
   
   .loading-title {
@@ -715,9 +713,9 @@
   }
   
   .loading-logo {
-    width: 200px;
+    width: 180px;
     height: auto;
-    margin-top: -60px;
+    margin: 0 auto 8px auto;
   }
   
   .loading-title {
