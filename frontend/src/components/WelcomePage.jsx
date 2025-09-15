@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import './WelcomePage.css';
 import { API_ENDPOINTS } from '../config';
 import girisVideo from '../assets/girisekrani.mp4';
+import girisVideoBaseline from '../assets/girisekrani-baseline-audio.mp4';
 import logo from '../assets/welcomelogo.png';
 
 const WelcomePage = ({ onStart, isLoading, error, onRetry, showKvkkModal, setShowKvkkModal, consent, setConsent, kvkkApproved, setKvkkApproved, kvkkMetinId, setKvkkMetinId }) => {
@@ -235,7 +236,7 @@ const WelcomePage = ({ onStart, isLoading, error, onRetry, showKvkkModal, setSho
         <div className="welcome-video-absolute">
             <video
               ref={videoRef}
-              src={girisVideo}
+              src={girisVideoBaseline}
               autoPlay
               muted
               defaultMuted
@@ -243,8 +244,12 @@ const WelcomePage = ({ onStart, isLoading, error, onRetry, showKvkkModal, setSho
               className="welcome-video pointer-cursor"
               playsInline
               preload="auto"
+              onLoadedData={() => { try { const el = videoRef.current; el && el.play && el.play(); } catch(_){} }}
               onEnded={handleEnded}
-            />
+            >
+              <source src={girisVideoBaseline} type="video/mp4" />
+              <source src={girisVideo} type="video/mp4" />
+            </video>
             <button className={`welcome-video-play-toggle ${isPlaying ? 'playing' : 'paused'}`} onClick={handlePlayToggle} tabIndex={-1} aria-label="Video Oynat/Durdur">
               {isPlaying ? <span role="img" aria-label="Duraklat">⏸️</span> : <span role="img" aria-label="Oynat">▶️</span>}
             </button>

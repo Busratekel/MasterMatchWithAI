@@ -134,6 +134,7 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
   const [wantsMail, setWantsMail] = useState(null); // null: henüz seçilmedi, true: evet, false: hayır
   const [email, setEmail] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState('');
   
   //
 
@@ -168,6 +169,7 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
 
   const handleSendMail = async () => {
     setIsSending(true);
+    setSendError('');
     // Kullanıcıya süreç başladığını bildir
     try {
       toast.info('Gönderiliyor...', { autoClose: 1500, position: 'top-center' });
@@ -184,7 +186,9 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
     }
     
     // Email kontrolü
-    if (!email || !email.includes('@')) {
+    const cleanedEmailPre = (email || '').trim();
+    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    if (!cleanedEmailPre || !emailRegex.test(cleanedEmailPre)) {
       toast.error('Geçerli bir email adresi girin!', {
         autoClose: 5000,
         position: "top-center"
@@ -201,6 +205,7 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
       
       const analysisHtml = generateAnalysisHtml(answers);
       
+      const cleanedEmail = cleanedEmailPre;
       const requestBody = {
         email,
         logId: logId,
@@ -209,23 +214,33 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
       };
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 saniye timeout
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 saniye timeout (mobil ağlar için daha toleranslı)
       
       const response = await fetch(API_ENDPOINTS.SAVE_MAIL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-        signal: controller.signal
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ ...requestBody, email: cleanedEmail }),
+        signal: controller.signal,
+        cache: 'no-store',
+        keepalive: false
       });
       
       clearTimeout(timeoutId);
       
+      const contentType = response.headers.get('content-type') || '';
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
+        let serverMsg = '';
+        try {
+          if (contentType.includes('application/json')) {
+            const j = await response.json();
+            serverMsg = j.reason ? `${j.error}: ${j.reason}` : (j.error || 'İşlem başarısız');
+          } else {
+            serverMsg = await response.text();
+          }
+        } catch {}
+        throw new Error(serverMsg || `HTTP ${response.status}`);
       }
-      
-      const result = await response.json();
+      const result = contentType.includes('application/json') ? await response.json() : { success: false };
       
       if (result.success) {
         toast.success('Mailiniz başarıyla gönderildi!', {
@@ -256,13 +271,20 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
       } else if (err.message.includes('NetworkError')) {
         errorMessage = 'Ağ hatası. Lütfen tekrar deneyin.';
       } else {
-        errorMessage = `Mail gönderilemedi: ${err.message}`;
+        // Backend reason yakala
+        const m = /\{"error":\s*"([^"]+)"(?:,\s*"reason":\s*"([^"]+)")?/i.exec(err.message || '');
+        if (m) {
+          errorMessage = m[2] ? `${m[1]}: ${m[2]}` : m[1];
+        } else {
+          errorMessage = `Mail gönderilemedi`;
+        }
       }
-      
-      toast.error(errorMessage, {
-        autoClose: 8000,
-        position: "top-center"
-      });
+      setSendError(errorMessage);
+      try {
+        toast.error(errorMessage, { autoClose: 8000, position: 'top-center' });
+      } catch (_) {
+        try { alert(errorMessage); } catch (_) {}
+      }
     } finally {
       setIsSending(false);
     }
@@ -339,6 +361,11 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
                     onChange={e => setEmail(e.target.value)}
                     style={{ fontSize: '1.2rem', margin: '18px 0', width: '100%'}}
                   />
+                  {sendError && (
+                    <div style={{ color: '#c62828', marginTop: 4, marginBottom: 8, fontSize: '0.95rem' }}>
+                      {sendError}
+                    </div>
+                  )}
                   <div className="popup-buttons">
                     <button className="btn btn-primary" onClick={handleSendMail} disabled={!email || isSending || !logId}>
                       {isSending ? "Gönderiliyor..." : "Gönder"}

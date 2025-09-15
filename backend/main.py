@@ -37,6 +37,8 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 # Redis import'u kaldırıldı - artık kullanılmıyor
 from flask_mail import Mail, Message
+import re
+import unicodedata
 
 # Flask-Limiter uyarısını bastır (geliştirme ortamı için)
 warnings.filterwarnings("ignore", message="Using the in-memory storage")
@@ -123,7 +125,12 @@ def send_analysis_email(email, mail_content, from_address=None, bcc_emails=None)
             sender=from_address or app.config['MAIL_DEFAULT_SENDER'],
             recipients=[email]
         )
-        msg.reply_to = MAIL_REPLY_TO
+        # reply_to güvenli ayarla
+        try:
+            if MAIL_REPLY_TO and (' ' not in MAIL_REPLY_TO) and ('@' in MAIL_REPLY_TO):
+                msg.reply_to = MAIL_REPLY_TO
+        except Exception:
+            pass
         # BCC env'den veya parametreden
         bcc_final = bcc_emails or MAIL_BCC_LIST
         if bcc_final:
@@ -132,10 +139,26 @@ def send_analysis_email(email, mail_content, from_address=None, bcc_emails=None)
         # Direkt gelen HTML içeriği kullan
         msg.html = mail_content
         mail.send(msg)
-        return True
+        return True, None
     except Exception as e:
         print(f"Mail gönderme hatası: {e}")
-        return False
+        return False, str(e)
+
+def sanitize_email(raw_email: str) -> str:
+    """E‑posta için unicode normalizasyonu ve görünmez boşluk temizliği uygular."""
+    if not raw_email:
+        return ''
+    # Unicode normalize
+    normalized = unicodedata.normalize('NFKC', str(raw_email))
+    # Zero-width ve NBSP dahil tüm beyaz boşluk karakterlerini standart boşluğa indir
+    normalized = ''.join(ch if not ch.isspace() else ' ' for ch in normalized)
+    # Trim
+    normalized = normalized.strip()
+    # Yaygın görünmez karakterleri at
+    normalized = normalized.replace('\u200b', '').replace('\u200c', '').replace('\u200d', '').replace('\ufeff', '').replace('\xa0', '')
+    return normalized.strip()
+
+EMAIL_REGEX = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
 
 # --- Veritabanı Modelleri ---
 class KvkkMetin(db.Model):
@@ -634,8 +657,8 @@ def get_kvkk_metin():
 def save_mail():
     try:
         # sessiz
-        data = request.json
-        email = data.get('email')
+        data = request.get_json(silent=True) or {}
+        email = sanitize_email(data.get('email') or '')
         log_id = data.get('logId')
         analiz_alindi_mi = data.get('analizAlindiMi', False)
         from_address = data.get('from_address')
@@ -656,7 +679,11 @@ def save_mail():
         print(f"Mail kaydetme isteği işlenirken hata: {e}")
         return jsonify({'error': f'İstek işlenirken hata: {str(e)}'}), 500
 
+    # Email geçerliyse kayıt ve gönderim yap
     if email:
+        # regex doğrulama
+        if not EMAIL_REGEX.match(email):
+            return jsonify({'error': 'Geçersiz e-posta adresi.', 'field': 'email'}), 400
         log.email = email
         
         # Kullanıcı cevaplarını al
@@ -734,9 +761,9 @@ def save_mail():
         else:
             complete_mail_content = analysis_html or log.cevaplar
         
-        mail_sent = send_analysis_email(email, complete_mail_content, from_address, bcc_emails)
+        mail_sent, mail_error = send_analysis_email(email, complete_mail_content, from_address, bcc_emails)
         if not mail_sent:
-            return jsonify({'error': 'Mail gönderilemedi!'}), 500
+            return jsonify('Mail gönderilemedi!'), 500
     
     log.analiz_sonucu_alindi_mi = analiz_alindi_mi
     db.session.commit()

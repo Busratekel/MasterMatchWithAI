@@ -205,6 +205,8 @@ function App() {
       setCurrentPage('resultsReady');
     }
   }, [logId, currentPage, isVideoTimerFinished]);
+
+  // Not: Zorunlu süre tabanlı geçiş kaldırıldı; geçişi sadece LoadingPage yönetiyor
   
   const handleShowResults = () => {
     setCurrentPage('results');
@@ -247,6 +249,25 @@ function App() {
   };
 
   useEffect(() => {
+  }, [currentPage]);
+
+  // Splash'ta kalmayı engelleyen global güvenlik: 4 sn sonra welcome'a geç
+  useEffect(() => {
+    if (currentPage === 'splash') {
+      const t = setTimeout(() => {
+        setCurrentPage('welcome');
+      }, 4000);
+      const onVisibility = () => {
+        if (document.visibilityState === 'visible') {
+          setTimeout(() => setCurrentPage('welcome'), 500);
+        }
+      };
+      document.addEventListener('visibilitychange', onVisibility);
+      return () => {
+        clearTimeout(t);
+        document.removeEventListener('visibilitychange', onVisibility);
+      };
+    }
   }, [currentPage]);
   
   const renderPage = () => {
