@@ -134,6 +134,8 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
   const [wantsMail, setWantsMail] = useState(null); // null: henüz seçilmedi, true: evet, false: hayır
   const [email, setEmail] = useState('');
   const [isSending, setIsSending] = useState(false);
+  
+  //
 
   const handleShowResultsClick = async () => {
     // Sonuçları görmeye tıklanınca analizAlindiMi: true gönder
@@ -147,11 +149,16 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
         })
       });
     }
+    // Popup'ı kesinlikle aç ve state'i sıfırla
+    setWantsMail(null);
     setShowMailPopup(true);
   };
 
   const handleMailChoice = async (choice) => {
+    // Popup açık kalsın ve seçim net olsun
+    setShowMailPopup(true);
     setWantsMail(choice);
+    
     if (!choice) {
       setShowMailPopup(false);
       onShowResults(); // Sonuçlar sayfasına hemen yönlendir
@@ -161,34 +168,99 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
 
   const handleSendMail = async () => {
     setIsSending(true);
+    // Kullanıcıya süreç başladığını bildir
     try {
+      toast.info('Gönderiliyor...', { autoClose: 1500, position: 'top-center' });
+    } catch {}
+    
+    // LogId kontrolü için toast mesajı
+    if (!logId) {
+      toast.error('Mail Gönderilemedi! Sayfayı yenileyin.', {
+        autoClose: 5000,
+        position: "top-center"
+      });
+      setIsSending(false);
+      return;
+    }
+    
+    // Email kontrolü
+    if (!email || !email.includes('@')) {
+      toast.error('Geçerli bir email adresi girin!', {
+        autoClose: 5000,
+        position: "top-center"
+      });
+      setIsSending(false);
+      return;
+    }
+    
+    try {
+      // Gönderim başladı bildirimini sade tut
+      const logIdText = logId != null ? String(logId) : '';
+      // Bilgilendirme tostu opsiyonel, mesajlı kullan
+      // toast.info(`Gönderiliyor... (#${logIdText.slice(-6)})`, { autoClose: 1500, position: 'top-center' });
+      
       const analysisHtml = generateAnalysisHtml(answers);
+      
+      const requestBody = {
+        email,
+        logId: logId,
+        analizAlindiMi: true,
+        analysisHtml: analysisHtml
+      };
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 saniye timeout
+      
       const response = await fetch(API_ENDPOINTS.SAVE_MAIL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          logId: logId,
-          analizAlindiMi: true,
-          analysisHtml: analysisHtml
-        })
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+      
       const result = await response.json();
+      
       if (result.success) {
         toast.success('Mailiniz başarıyla gönderildi!', {
           autoClose: 5000,
           position: "top-right"
         });
+        // Popup'ı kapat ve sonuçlara hemen git (mobilde takılmayı önlemek için bekleme kaldırıldı)
         setShowMailPopup(false);
-        setTimeout(() => {
+        try {
+          localStorage.setItem('pillowCurrentPage', 'results');
+        } catch {}
+        try {
           onShowResults();
-        }, 1000);
+        } catch (e) {}
+        // Ek güvenlik: 2 sn sonra yine dene (tek seferlik)
+        setTimeout(() => {
+          try { onShowResults(); } catch {}
+        }, 2000);
       } else {
         throw new Error(result.error || 'Mail gönderilemedi.');
       }
     } catch (err) {
-      toast.error('Mail gönderilemedi, lütfen tekrar deneyin.', {
-        autoClose: 5000,
+      let errorMessage = 'Mail gönderilemedi';
+      if (err.name === 'AbortError') {
+        errorMessage = 'Mail gönderme zaman aşımına uğradı. Lütfen tekrar deneyin.';
+      } else if (err.message.includes('Failed to fetch')) {
+        errorMessage = 'Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edin.';
+      } else if (err.message.includes('NetworkError')) {
+        errorMessage = 'Ağ hatası. Lütfen tekrar deneyin.';
+      } else {
+        errorMessage = `Mail gönderilemedi: ${err.message}`;
+      }
+      
+      toast.error(errorMessage, {
+        autoClose: 8000,
         position: "top-center"
       });
     } finally {
@@ -273,7 +345,6 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
                     </button>
                     <button className="btn btn-secondary" onClick={() => setShowMailPopup(false)} disabled={isSending}>Vazgeç</button>
                   </div>
-                  {!logId && <div style={{color: 'red', marginTop: 8}}>Teknik bir hata oluştu, lütfen sayfayı yenileyin.</div>}
                 </>
               )}
             </div>

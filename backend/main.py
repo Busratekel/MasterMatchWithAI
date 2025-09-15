@@ -73,7 +73,7 @@ database_url = os.getenv('DATABASE_URL')
 if not database_url:
     # Eğer DATABASE_URL yoksa SQLite kullan (geliştirme için)
     database_url = 'sqlite:///app.db'
-print(f"Kullanılan veritabanı URL: {database_url}")
+# Sessiz moda alındı
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -116,6 +116,8 @@ mail = Mail(app)
 # Mail gönderme fonksiyonu
 def send_analysis_email(email, mail_content, from_address=None, bcc_emails=None):
     try:
+        # sessiz
+        
         msg = Message(
             subject='Yastık Analiz Raporunuz - DoquHome',
             sender=from_address or app.config['MAIL_DEFAULT_SENDER'],
@@ -630,20 +632,29 @@ def get_kvkk_metin():
 
 @app.route('/api/save-mail', methods=['POST'])
 def save_mail():
-    data = request.json
-    email = data.get('email')
-    log_id = data.get('logId')
-    analiz_alindi_mi = data.get('analizAlindiMi', False)
-    from_address = data.get('from_address')
-    bcc_emails = data.get('bcc_emails')
-    analysis_html = data.get('analysisHtml')
+    try:
+        # sessiz
+        data = request.json
+        email = data.get('email')
+        log_id = data.get('logId')
+        analiz_alindi_mi = data.get('analizAlindiMi', False)
+        from_address = data.get('from_address')
+        bcc_emails = data.get('bcc_emails')
+        analysis_html = data.get('analysisHtml')
 
-    if not log_id:
-        return jsonify({'error': 'logId zorunlu!'}), 400
+        # sessiz
 
-    log = db.session.get(KullaniciLog, log_id)
-    if not log:
-        return jsonify({'error': 'Log bulunamadı!'}), 404
+        if not log_id:
+            # sessiz
+            return jsonify({'error': 'logId zorunlu!'}), 400
+
+        log = db.session.get(KullaniciLog, log_id)
+        if not log:
+            # sessiz
+            return jsonify({'error': 'Log bulunamadı!'}), 404
+    except Exception as e:
+        print(f"Mail kaydetme isteği işlenirken hata: {e}")
+        return jsonify({'error': f'İstek işlenirken hata: {str(e)}'}), 500
 
     if email:
         log.email = email

@@ -21,6 +21,24 @@ html, body, #root, .App {
   padding: 60px 0 0 0;
 }
 
+/* Splash resmi için özel stiller */
+.splash-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  background: #c3d5f5;
+}
+
+.splash-image {
+  max-width: 85vw;
+  max-height: 85vh;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
 /* Remove or adjust other styles if they conflict */
 .App-logo {
   height: 40vmin;
@@ -229,6 +247,17 @@ html, body, #root, .App {
     align-items: stretch;
     padding: 0 !important;
     gap: 4px;
+  }
+  
+  .splash-container {
+    width: 100vw;
+    height: 100vh;
+    padding: 10px;
+  }
+  
+  .splash-image {
+    max-width: 90vw;
+    max-height: 90vh;
   }
   .container {
     padding: 10px 2vw;

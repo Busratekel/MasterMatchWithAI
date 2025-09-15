@@ -256,7 +256,9 @@ function App() {
     switch (currentPage) {
       case 'splash':
         return (
-            <img src={splashImage} alt="Splash" style={{ maxWidth: '85vw', maxHeight: '85vh', objectFit: 'contain' }} />
+          <div className="splash-container">
+            <img src={splashImage} alt="Splash" className="splash-image" />
+          </div>
         );
       case 'welcome':
         return (
@@ -297,7 +299,6 @@ function App() {
       case 'resultsReady':
         // Önce state'ten, yoksa localStorage'dan al
         const safeLogId = logId || localStorage.getItem('pillowLogId');
-        console.log("ResultsReadyPage'e gelen logId:", safeLogId);
         return (
           <ResultsReadyPage
             onShowResults={handleShowResults}

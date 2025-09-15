@@ -118,23 +118,34 @@
   border-color: #7d97b3;
 } 
 @media (max-width: 768px) {
+  .popup-overlay {
+    align-items: flex-start !important;
+    padding-top: 0 !important;
+  }
+  
   .popup-content{
-    margin-top: 16px !important;
-    max-height: 92vh !important;
+    margin: 5px !important;
+    max-height: calc(100vh - 10px) !important;
+    max-height: calc(100dvh - 10px) !important; /* Dynamic viewport height for mobile browsers */
     height: auto !important;
-    overflow: auto !important;
-    padding: 22px 18px !important;
+    overflow-y: auto !important;
+    padding: 15px 18px !important;
   }
   .popup-title {
-    margin-top: 6px !important;
-    margin-bottom: 12px !important;
-    font-size: 24px !important;
+    margin-top: 0 !important;
+    margin-bottom: 10px !important;
+    font-size: 22px !important;
   }
   .kvkk-scroll {
-    height: 70vh;
+    height: 60vh;
+    height: 60dvh; /* Dynamic viewport height for mobile browsers */
     margin-bottom: 16px;
     align-items: stretch;
-    overflow: auto; /* enable scroll on small screens only */
+    overflow: auto;
+  }
+  .kvkk-modal-buttons-row {
+    margin-bottom: 0 !important;
+    padding-top: 10px !important;
   }
 }
 
@@ -183,16 +194,61 @@
 }
 
 @media (max-width: 480px) {
+  .popup-content {
+    margin: 3px !important;
+    max-height: calc(100vh - 6px) !important;
+    max-height: calc(100dvh - 6px) !important; /* Dynamic viewport height for mobile browsers */
+    padding: 12px 15px !important;
+  }
+  .popup-title {
+    font-size: 20px !important;
+    margin-bottom: 8px !important;
+  }
   .kvkk-scroll {
-    height: 65vh;
+    height: 55vh;
+    height: 55dvh; /* Dynamic viewport height for mobile browsers */
+    margin-bottom: 12px;
+  }
+  .kvkk-modal-buttons-row {
+    padding-top: 8px !important;
+    gap: 12px !important;
+  }
+  .kvkk-approve-button,
+  .kvkk-close-button {
+    padding: 10px 20px !important;
+    font-size: 14px !important;
   }
 }
 
 @media (max-width: 375px) {
+  .popup-content {
+    margin: 2px !important;
+    max-height: calc(100vh - 4px) !important;
+    max-height: calc(100dvh - 4px) !important; /* Dynamic viewport height for mobile browsers */
+    padding: 10px 12px !important;
+  }
+  .popup-title {
+    font-size: 18px !important;
+    margin-bottom: 6px !important;
+  }
+  .kvkk-scroll {
+    height: 50vh;
+    height: 50dvh; /* Dynamic viewport height for mobile browsers */
+    margin-bottom: 10px;
+  }
   .kvkk-text {
-    font-size: 12px;
-    padding: 10px;
-    line-height: 1.6;
+    font-size: 11px !important;
+    padding: 8px !important;
+    line-height: 1.5 !important;
+  }
+  .kvkk-modal-buttons-row {
+    padding-top: 6px !important;
+    gap: 10px !important;
+  }
+  .kvkk-approve-button,
+  .kvkk-close-button {
+    padding: 8px 16px !important;
+    font-size: 13px !important;
   }
 }
 

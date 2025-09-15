@@ -700,6 +700,8 @@ html, body, #root {
   }
 }
 
+/* removed older spacing overrides for 461–991 and 992–1200; normalized block at file end */
+
 @media (max-width: 600px) {
   html, body, #root {
     min-width: 100vw;
@@ -707,9 +709,17 @@ html, body, #root {
   }
   
   .welcome-page-background {
-    padding: 15px 10px;
+    /* Allow real page scroll on mobile; avoid fixed layout fighting with address bar */
+    position: static !important;
+    inset: auto !important;
+    width: 100vw;
+    height: auto !important;
     min-width: 100vw;
-    min-height: 100vh;
+    min-height: 100dvh; /* dynamic viewport height so address bar doesn't cover */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 28px 12px; /* safe top space */
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
     background-size: 80%;
   }
   
@@ -730,6 +740,8 @@ html, body, #root {
     height: auto;
     margin: 0 auto 15px auto;
     display: block !important;
+    background: transparent !important; /* mobile: remove white behind */
+    mix-blend-mode: normal !important; /* mobile safari fix */
   }
   
   .description {
@@ -818,6 +830,8 @@ html, body, #root {
     height: 70px;
     margin: 0 auto 18px auto;
     display: block !important;
+    background: transparent;
+  mix-blend-mode: multiply;
   }
   
   .description {
@@ -914,6 +928,8 @@ html, body, #root {
     .welcome-logo {
       margin-bottom: 8px !important;
       width: 30%;
+      background: transparent;
+      mix-blend-mode: multiply;
     }
   
     .description {
@@ -986,7 +1002,8 @@ html, body, #root {
 
 @media (min-width: 391px) and (max-width: 460px) {
   .welcome-page-background {
-    padding: 12px 8px;
+    padding: 15px 10px;
+    min-height: 100dvh;
     align-items: center;
     justify-content: center;
   }
@@ -1048,6 +1065,8 @@ html, body, #root {
     height: auto;
     margin: 0 auto 15px auto;
     display: block !important;
+    background: transparent;
+    mix-blend-mode: multiply;
   }
   
   .description {
@@ -1105,7 +1124,8 @@ html, body, #root {
 
 @media (max-width: 390px) {
   .welcome-page-background {
-    padding: 10px 5px;
+    padding: 12px 8px;
+    min-height: 100dvh;
     align-items: center;
     justify-content: center;
   }
@@ -1138,6 +1158,8 @@ html, body, #root {
     height: auto;
     margin: 0 auto 10px auto;
     display: block !important;
+    background: transparent;
+  mix-blend-mode: multiply;
   }
   
   .description {
@@ -1303,6 +1325,8 @@ video {
   .welcome-logo {
     margin-bottom: 8px !important;
     width: 30%;
+    background: transparent;
+  mix-blend-mode: multiply;
   }
 
   .description {
@@ -1378,6 +1402,8 @@ video {
 
   .welcome-logo {
     margin-bottom: 6px !important;
+    background: transparent;
+  mix-blend-mode: multiply;
   }
 
   .description {
@@ -1443,6 +1469,8 @@ video {
     margin-bottom: -50px !important;
     margin-left: 0px;
     width: 45%;
+    background: transparent;
+  mix-blend-mode: multiply;
   }
 
   .description {
@@ -1540,6 +1568,8 @@ video {
     height: auto !important;
     margin: auto auto auto auto !important;
     display: block !important;
+    background: transparent;
+  mix-blend-mode: multiply;
   }
   .description {
     font-size: 13px !important;
