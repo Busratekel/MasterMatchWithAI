@@ -21,6 +21,7 @@ const StepperForm = ({
   const [showInfo, setShowInfo] = React.useState(false);
   const [infoText, setInfoText] = React.useState('');
   const infoTimer = useRef(null);
+  const contentTopRef = useRef(null);
   
   useEffect(() => {
     // Adım değiştiğinde önceki bilgiyi hemen gizle
@@ -46,6 +47,30 @@ const StepperForm = ({
       clearTimeout(infoTimer.current);
     };
   }, [currentStep, questions]);
+
+  // Adım değiştiğinde üst kısma kaydır (mobil ve desktop)
+  useEffect(() => {
+    // Render tamamlandıktan hemen sonra çalışsın
+    const id = requestAnimationFrame(() => {
+      try {
+        if (contentTopRef.current && typeof contentTopRef.current.scrollTo === 'function') {
+          contentTopRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      } catch (_) {}
+      try {
+        if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      } catch (_) {}
+      try {
+        const el = document.scrollingElement || document.documentElement || document.body;
+        if (el && typeof el.scrollTo === 'function') {
+          el.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      } catch (_) {}
+    });
+    return () => cancelAnimationFrame(id);
+  }, [currentStep]);
   
   const handleAnswerChange = React.useCallback((questionId, clickedOption) => {
     let newAnswers = { ...answers };
@@ -191,7 +216,7 @@ const StepperForm = ({
             onRestart={onRestart}
           />
         )}
-        <div className="stepper-content-card">
+        <div className="stepper-content-card" ref={contentTopRef}>
           {currentQuestion ? (
             <StepContent
               question={currentQuestion}
