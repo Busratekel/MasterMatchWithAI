@@ -4,6 +4,74 @@ import ClickAwayListener from '@mui/material/ClickAwayListener';
 import Slider from '@mui/material/Slider';
 import './StepContent.css';
 
+// Tüm görselleri import et (Webpack build için gerekli)
+import imgHareketliUykuPozisyonu from '../assets/hareketliuykupozisyonu.png';
+import imgSirtUstuUykuPozisyonu from '../assets/sirtustuuykupozisyonu.png';
+import imgYanUykuPozisyonu from '../assets/yanuykupozisyonu.png';
+import imgYuzUstuUykuPozisyonu from '../assets/yuzustuuykupozisyonu.png';
+import imgGeneldeOrtaTempoda from '../assets/geneldeortatempoda,dengelibirgunumoluyor..png';
+import imgOldukcaSakinBirTempom from '../assets/oldukcasakinbirtempomvar..png';
+import imgYoguntempoluBirGun from '../assets/yoguntempolubirgungeciriyorum..png';
+import imgHicbirProblemYasamiyorum from '../assets/hicbirproblemyasamiyorum,sabahlaridinlenmisuyaniyorum..png';
+import imgNefesAlmaktaZorlaniyorum from '../assets/nefesalmaktazorlaniyorum,zamanzamanhorlamaproblemiyasiyorum.png';
+import imgRefluNedeniyle from '../assets/reflunedeniylegecelerisiksikuyaniyorum..png';
+import imgUykumTerlemeNedeniyle from '../assets/uykumterlemenedeniylebolunuyor..png';
+import imgSadecebelAgrisi from '../assets/sadecebelagrisi.png';
+import imgSadeceBoyunAgrisi from '../assets/sadeceboyunagrisi.png';
+import imgSadeceOmuzAgrisi from '../assets/sadeceomuzagrisi.png';
+import imgHepsi from '../assets/hepsi.png';
+import imgHicbirAgriHissetmiyorum from '../assets/hicbiragrihissetmiyorum.png';
+import imgEvetButurDogalMalzemelere from '../assets/evet,buturdogalmalzemelerekarsialerjim,hassasiyetimvar.png';
+import imgHayirYok from '../assets/hayir,yok.png';
+import imgYumusak from '../assets/yumusak.png';
+import imgOrta from '../assets/orta.png';
+import imgSert from '../assets/sert.png';
+import imgYukseklikAlcak from '../assets/yukseklikalcak.png';
+import imgYukseklikOrta from '../assets/yukseklikorta.png';
+import imgYukseklikYuksek from '../assets/yukseklikyuksek.png';
+import imgYumusakYatak from '../assets/yumusakyatak.png';
+import imgOrtaSertYatak from '../assets/orta-sertyatak.png';
+import imgSertYatak from '../assets/sertyatak.png';
+
+// Görsel mapping objesi
+const IMAGE_MAP = {
+  // Uyku pozisyonları
+  'hareketliuykupozisyonu': imgHareketliUykuPozisyonu,
+  'sirtustuuykupozisyonu': imgSirtUstuUykuPozisyonu,
+  'yanuykupozisyonu': imgYanUykuPozisyonu,
+  'yuzustuuykupozisyonu': imgYuzUstuUykuPozisyonu,
+  // Tempo
+  'geneldeortatempoda,dengelibirgunumoluyor.': imgGeneldeOrtaTempoda,
+  'oldukcasakinbirtempomvar.': imgOldukcaSakinBirTempom,
+  'yoguntempolubirgungeciriyorum.': imgYoguntempoluBirGun,
+  // Uyku düzeni
+  'hicbirproblemyasamiyorum,sabahlaridinlenmisuyaniyorum.': imgHicbirProblemYasamiyorum,
+  'nefesalmaktazorlaniyorum,zamanzamanhorlamaproblemiyasiyorum': imgNefesAlmaktaZorlaniyorum,
+  'reflunedeniylegecelerisiksikuyaniyorum.': imgRefluNedeniyle,
+  'uykumterlemenedeniylebolunuyor.': imgUykumTerlemeNedeniyle,
+  // Ağrı bölgeleri
+  'sadecebelagrisi': imgSadecebelAgrisi,
+  'sadeceboyunagrisi': imgSadeceBoyunAgrisi,
+  'sadeceomuzagrisi': imgSadeceOmuzAgrisi,
+  'hepsi': imgHepsi,
+  'hicbiragrihissetmiyorum': imgHicbirAgriHissetmiyorum,
+  // Doğal malzeme
+  'evet,buturdogalmalzemelerekarsialerjim,hassasiyetimvar': imgEvetButurDogalMalzemelere,
+  'hayir,yok': imgHayirYok,
+  // Yastık sertliği
+  'yumusak': imgYumusak,
+  'orta': imgOrta,
+  'sert': imgSert,
+  // Yastık yüksekliği
+  'yukseklikalcak': imgYukseklikAlcak,
+  'yukseklikorta': imgYukseklikOrta,
+  'yukseklikyuksek': imgYukseklikYuksek,
+  // Yatak sertliği
+  'yumusakyatak': imgYumusakYatak,
+  'orta-sertyatak': imgOrtaSertYatak,
+  'sertyatak': imgSertYatak
+};
+
 const minBoy = 120, maxBoy = 220;
 const minKilo = 30, maxKilo = 220;
 const yasOptions = Array.from({ length: 67 }, (_, i) => i.toString()).concat('65+');
@@ -121,9 +189,25 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
         {/* Yaş, Boy, Kilo Container */}
         <div className="bmi-input-container">
           <div className="bmi-row-modern" style={{ marginBottom: '4px' }}>
-            <label htmlFor="yas-slider">Yaşınız:</label>
+            <label htmlFor="yas-input">Yaşınız:</label>
             <div className="bmi-value-group">
-              <input className="bmi-value-box" value={localAge === 65 ? '65+' : localAge} readOnly />
+              <input 
+                id="yas-input"
+                type="number"
+                className="bmi-value-box" 
+                value={localAge === 65 ? '65' : localAge} 
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '') {
+                    setLocalAge('0');
+                  } else {
+                    const num = Math.min(65, Math.max(0, parseInt(val) || 0));
+                    setLocalAge(num);
+                  }
+                }}
+                min={0}
+                max={65}
+              />
               <span className="bmi-unit">yaş</span>
             </div>
           </div>
@@ -138,9 +222,26 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
           />
           
           <div className="bmi-row-modern" style={{ marginBottom: '4px' }}>
-            <label htmlFor="boy-slider">Boyunuz:</label>
+            <label htmlFor="boy-input">Boyunuz:</label>
             <div className="bmi-value-group">
-              <input className={`bmi-value-box${localAge !== '' && Number(localAge) <= 7 ? ' bmi-disabled' : ''}`} value={localHeight} readOnly />
+              <input 
+                id="boy-input"
+                type="number"
+                className={`bmi-value-box${localAge !== '' && Number(localAge) <= 7 ? ' bmi-disabled' : ''}`} 
+                value={localHeight}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '') {
+                    setLocalHeight(minBoy);
+                  } else {
+                    const num = Math.min(maxBoy, Math.max(minBoy, parseInt(val) || minBoy));
+                    setLocalHeight(num);
+                  }
+                }}
+                disabled={localAge !== '' && Number(localAge) <= 7}
+                min={minBoy}
+                max={maxBoy}
+              />
               <span className="bmi-unit">cm</span>
             </div>
           </div>
@@ -155,9 +256,26 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
           />
           
           <div className="bmi-row-modern" style={{ marginBottom: '4px' }}>
-            <label htmlFor="kilo-slider">Kilonuz:</label>
+            <label htmlFor="kilo-input">Kilonuz:</label>
             <div className="bmi-value-group">
-              <input className={`bmi-value-box${localAge !== '' && Number(localAge) <= 7 ? ' bmi-disabled' : ''}`} value={localWeight} readOnly />
+              <input 
+                id="kilo-input"
+                type="number"
+                className={`bmi-value-box${localAge !== '' && Number(localAge) <= 7 ? ' bmi-disabled' : ''}`} 
+                value={localWeight}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '') {
+                    setLocalWeight(minKilo);
+                  } else {
+                    const num = Math.min(maxKilo, Math.max(minKilo, parseInt(val) || minKilo));
+                    setLocalWeight(num);
+                  }
+                }}
+                disabled={localAge !== '' && Number(localAge) <= 7}
+                min={minKilo}
+                max={maxKilo}
+              />
               <span className="bmi-unit">kg</span>
             </div>
           </div>
@@ -309,12 +427,26 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
                 'Yüksek': 'yukseklikyuksek'
               };
               const key = map[option] || 'yukseklikorta';
-              return require(`../assets/${key}.png`);
+              return IMAGE_MAP[key] || IMAGE_MAP['yukseklikorta'];
             }
+            
+            // Yatak sertliği için özel dosya adları kullan
+            if (question.id === 'sertlik') {
+              const map = {
+                'Yumuşak Yatak': 'yumusakyatak',
+                'Orta-Sert Yatak': 'orta-sertyatak',
+                'Sert Yatak': 'sertyatak'
+              };
+              const key = map[option];
+              if (key && IMAGE_MAP[key]) {
+                return IMAGE_MAP[key];
+              }
+            }
+            
             // "Yastık" ekini temizle ve görsel eşleştirmesi yap
             const noSuffix = option.replace(/\s*yastık$/i, '');
             const mapped = noSuffix === 'Orta-Sert' ? 'Orta' : noSuffix;
-            return require(`../assets/${mapped
+            const key = mapped
               .toLowerCase()
               .replace(/ /g, '')
               .replace(/ı/g, 'i')
@@ -328,8 +460,9 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
               .replace(/Ş/g, 's')
               .replace(/Ö/g, 'o')
               .replace(/Ç/g, 'c')
-              .replace(/Ğ/g, 'g')
-            }.png`);
+              .replace(/Ğ/g, 'g');
+            
+            return IMAGE_MAP[key] || require(`../assets/${key}.png`);
           };
           return (
             <div

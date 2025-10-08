@@ -211,6 +211,7 @@ class KullaniciLog(db.Model):
     tarih = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     incelendi_mi = db.Column(db.Boolean, default=False)
     incelenen_urunler = db.Column(db.Text, nullable=True)
+    onerilen_yastiklar = db.Column(db.Text, nullable=True)  # Önerilen yastıklar JSON olarak
     analiz_sonucu_alindi_mi = db.Column(db.Boolean, default=False)  # Analiz sonucu popup ile alındı mı
 
 # --- Sabit Veriler ---
@@ -442,7 +443,7 @@ QUESTIONS = [
     {'id': 'tempo', 'question': 'Günlük yaşam temponuzu nasıl tanımlarsınız?', 'type': 'radio', 'options': ['Oldukça sakin bir tempom var.','Genelde orta tempoda, dengeli bir günüm oluyor.', 'Yoğun tempolu bir gün geçiriyorum.'], 'info': 'Yoğun tempolu yaşamda vücut daha fazla destek ve dinlenmeye ihtiyaç duyar. Doğru yastık, günün yorgunluğunu hafifletir.', 'order': 6},
     {'id': 'agri_bolge', 'question': 'Sabahları belirli bir bölgede ağrı hissediyor musunuz?', 'type': 'checkbox', 'options': ['Hiçbir ağrı hissetmiyorum', 'Sadece Bel Ağrısı', 'Sadece Omuz Ağrısı', 'Sadece Boyun Ağrısı', 'Hepsi'], 'info': 'Boyun, omuz veya bel ağrısı; yanlış yastık seçiminden kaynaklanıyor olabilir. Vücudunuzu dinleyin, ihtiyacınıza uygun yastığı seçin.', 'order': 7},
     {'id': 'dogal_malzeme', 'question': 'Doğal malzemelere (kaz tüyü,yün,bambu,pamuk gibi) karşı alerjiniz veya hassasiyetiniz var mı ?', 'type': 'radio', 'options': ['Hayır,yok', 'Evet,bu tür doğal malzemelere karşı alerjim,hassasiyetim var'], 'info': 'Bazı kişiler doğal dolgu malzemelerine (kaz tüyü,yün,bambu,pamuk gibi) karşı alerjik reaksiyon veya hassasiyet gösterebilir.Bu kişiler için,elyaf dolgulu veya visco sünger dolgulu ürünlerin kullanımı daha sağlıklı ve konforlu bir tercih olabilir', 'order': 8},
-    {'id': 'sertlik', 'question': 'Yatak sertlik derecenizi belirtir misiniz?', 'type': 'radio', 'options': ['Yumuşak Yatak', 'Orta Yatak', 'Sert Yatak'], 'info': 'Yatak sertliği, yastığın yüksekliği ve dolgunluğu ile uyumlu olmalı. Uyumlu ikili, daha sağlıklı bir uyku sağlar.', 'order': 9}
+    {'id': 'sertlik', 'question': 'Yatak sertlik derecenizi belirtir misiniz?', 'type': 'radio', 'options': ['Yumuşak Yatak', 'Orta-Sert Yatak', 'Sert Yatak'], 'info': 'Yatak sertliği, yastığın yüksekliği ve dolgunluğu ile uyumlu olmalı. Uyumlu ikili, daha sağlıklı bir uyku sağlar.', 'order': 9}
 ]
 
 # --- API Endpoint'leri ---
@@ -525,19 +526,6 @@ def recommend():
         soyad = user_info.get('soyad')
         ip_adresi = request.remote_addr if not (ad and soyad) else None
 
-        log = KullaniciLog(
-            ad=ad,
-            soyad=soyad,
-            ip_adresi=ip_adresi,
-            yas=str(yas),
-            boy=str(boy),
-            kilo=str(kilo),
-            vki=str(vki),
-            cevaplar=json.dumps(responses, ensure_ascii=False)
-        )
-        db.session.add(log)
-        db.session.commit()
-
         if not responses:
             return jsonify(error="Cevaplar alınamadı."), 400
 
@@ -546,6 +534,24 @@ def recommend():
         
         if not recommendations:
             return jsonify(error="Veritabanında yastık bulunamadı."), 500
+        
+        # Önerilen yastıkların sadece isimlerini kaydet
+        onerilen_isimler = [y.get('isim', '') for y in recommendations if y.get('isim')]
+        onerilen_yastiklar_json = json.dumps(onerilen_isimler, ensure_ascii=False)
+        
+        log = KullaniciLog(
+            ad=ad,
+            soyad=soyad,
+            ip_adresi=ip_adresi,
+            yas=str(yas),
+            boy=str(boy),
+            kilo=str(kilo),
+            vki=str(vki),
+            cevaplar=json.dumps(responses, ensure_ascii=False),
+            onerilen_yastiklar=onerilen_yastiklar_json
+        )
+        db.session.add(log)
+        db.session.commit()
         
         return jsonify(recommendations=recommendations, log_id=log.id)
 
@@ -679,11 +685,12 @@ def save_mail():
         print(f"Mail kaydetme isteği işlenirken hata: {e}")
         return jsonify({'error': f'İstek işlenirken hata: {str(e)}'}), 500
 
-    # Email geçerliyse kayıt ve gönderim yap
+    # Email varsa kaydet (mail gönderilsin ya da gönderilmesin)
     if email:
         # regex doğrulama
         if not EMAIL_REGEX.match(email):
             return jsonify({'error': 'Geçersiz e-posta adresi.', 'field': 'email'}), 400
+        # Mail bilgisini log kaydına ekle
         log.email = email
         
         # Kullanıcı cevaplarını al
@@ -696,6 +703,11 @@ def save_mail():
             recommendations = incoming_recs
         else:
             recommendations = calculate_pillow_recommendations(responses)
+        
+        # Önerilen yastıkların sadece isimlerini kaydet (eğer henüz kaydedilmemişse)
+        if recommendations and not log.onerilen_yastiklar:
+            onerilen_isimler = [y.get('isim', '') for y in recommendations if y.get('isim')]
+            log.onerilen_yastiklar = json.dumps(onerilen_isimler, ensure_ascii=False)
         
         if recommendations:
             # Frontend mantığıyla aynı: Diz Arası Yastık ana listede görünmesin
@@ -763,8 +775,12 @@ def save_mail():
         
         mail_sent, mail_error = send_analysis_email(email, complete_mail_content, from_address, bcc_emails)
         if not mail_sent:
-            return jsonify('Mail gönderilemedi!'), 500
+            # Mail gönderilemedi ama email bilgisini kaydet
+            log.analiz_sonucu_alindi_mi = analiz_alindi_mi
+            db.session.commit()
+            return jsonify({'error': 'Mail gönderilemedi!', 'reason': mail_error or 'Bilinmeyen hata'}), 500
     
+    # Başarılı durum: analiz sonucu ve email kaydedildi
     log.analiz_sonucu_alindi_mi = analiz_alindi_mi
     db.session.commit()
     

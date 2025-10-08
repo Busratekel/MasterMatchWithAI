@@ -131,12 +131,9 @@ function generateAnalysisHtml(answers) {
 
 const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
   const [showMailPopup, setShowMailPopup] = useState(false);
-  const [wantsMail, setWantsMail] = useState(null); // null: henüz seçilmedi, true: evet, false: hayır
   const [email, setEmail] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState('');
-  
-  //
 
   const handleShowResultsClick = async () => {
     // Sonuçları görmeye tıklanınca analizAlindiMi: true gönder
@@ -150,41 +147,11 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
         })
       });
     }
-    // Popup'ı kesinlikle aç ve state'i sıfırla
-    setWantsMail(null);
+    // Direkt mail popup'ını aç
     setShowMailPopup(true);
-  };
-
-  const handleMailChoice = async (choice) => {
-    // Popup açık kalsın ve seçim net olsun
-    setShowMailPopup(true);
-    setWantsMail(choice);
-    
-    if (!choice) {
-      setShowMailPopup(false);
-      onShowResults(); // Sonuçlar sayfasına hemen yönlendir
-      // Hayır derse tekrar analizAlindiMi: true gönderme gerek yok, zaten yukarıda gönderildi
-    }
   };
 
   const handleSendMail = async () => {
-    setIsSending(true);
-    setSendError('');
-    // Kullanıcıya süreç başladığını bildir
-    try {
-      toast.info('Gönderiliyor...', { autoClose: 1500, position: 'top-center' });
-    } catch {}
-    
-    // LogId kontrolü için toast mesajı
-    if (!logId) {
-      toast.error('Mail Gönderilemedi! Sayfayı yenileyin.', {
-        autoClose: 5000,
-        position: "top-center"
-      });
-      setIsSending(false);
-      return;
-    }
-    
     // Email kontrolü
     const cleanedEmailPre = (email || '').trim();
     const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
@@ -193,101 +160,87 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
         autoClose: 5000,
         position: "top-center"
       });
-      setIsSending(false);
       return;
     }
     
-    try {
-      // Gönderim başladı bildirimini sade tut
-      const logIdText = logId != null ? String(logId) : '';
-      // Bilgilendirme tostu opsiyonel, mesajlı kullan
-      // toast.info(`Gönderiliyor... (#${logIdText.slice(-6)})`, { autoClose: 1500, position: 'top-center' });
-      
-      const analysisHtml = generateAnalysisHtml(answers);
-      
-      const cleanedEmail = cleanedEmailPre;
-      const requestBody = {
-        email,
-        logId: logId,
-        analizAlindiMi: true,
-        analysisHtml: analysisHtml
-      };
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 saniye timeout (mobil ağlar için daha toleranslı)
-      
-      const response = await fetch(API_ENDPOINTS.SAVE_MAIL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ ...requestBody, email: cleanedEmail }),
-        signal: controller.signal,
-        cache: 'no-store',
-        keepalive: false
+    if (!logId) {
+      toast.error('Mail Gönderilemedi! Sayfayı yenileyin.', {
+        autoClose: 5000,
+        position: "top-center"
       });
-      
+      return;
+    }
+    
+    // Popup'ı hemen kapat ve sonuç sayfasına git
+    setShowMailPopup(false);
+    try {
+      localStorage.setItem('pillowCurrentPage', 'results');
+    } catch {}
+    onShowResults();
+    
+    // Toast bildirimini göster
+    try {
+      toast.info('Mail gönderiliyor...', { autoClose: 2000, position: 'top-center' });
+    } catch {}
+    
+    // Arka planda mail gönder
+    const analysisHtml = generateAnalysisHtml(answers);
+    const cleanedEmail = cleanedEmailPre;
+    const requestBody = {
+      email: cleanedEmail,
+      logId: logId,
+      analizAlindiMi: true,
+      analysisHtml: analysisHtml
+    };
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    
+    fetch(API_ENDPOINTS.SAVE_MAIL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(requestBody),
+      signal: controller.signal,
+      cache: 'no-store',
+      keepalive: true // Sayfa değişse bile istek devam etsin
+    })
+    .then(response => {
       clearTimeout(timeoutId);
-      
       const contentType = response.headers.get('content-type') || '';
       if (!response.ok) {
-        let serverMsg = '';
-        try {
-          if (contentType.includes('application/json')) {
-            const j = await response.json();
-            serverMsg = j.reason ? `${j.error}: ${j.reason}` : (j.error || 'İşlem başarısız');
-          } else {
-            serverMsg = await response.text();
-          }
-        } catch {}
-        throw new Error(serverMsg || `HTTP ${response.status}`);
+        return response.text().then(text => {
+          throw new Error(text || `HTTP ${response.status}`);
+        });
       }
-      const result = contentType.includes('application/json') ? await response.json() : { success: false };
-      
+      return response.json();
+    })
+    .then(result => {
       if (result.success) {
+        // Önce mevcut toast'ları temizle
+        try { toast.dismiss(); } catch {}
+        // Sonra yeni toast göster
         toast.success('Mailiniz başarıyla gönderildi!', {
-          autoClose: 5000,
+          autoClose: 4000,
           position: "top-right"
         });
-        // Popup'ı kapat ve sonuçlara hemen git (mobilde takılmayı önlemek için bekleme kaldırıldı)
-        setShowMailPopup(false);
-        try {
-          localStorage.setItem('pillowCurrentPage', 'results');
-        } catch {}
-        try {
-          onShowResults();
-        } catch (e) {}
-        // Ek güvenlik: 2 sn sonra yine dene (tek seferlik)
-        setTimeout(() => {
-          try { onShowResults(); } catch {}
-        }, 2000);
       } else {
-        throw new Error(result.error || 'Mail gönderilemedi.');
+        throw new Error(result.error || 'Mail gönderilemedi');
       }
-    } catch (err) {
-      let errorMessage = 'Mail gönderilemedi';
-      if (err.name === 'AbortError') {
-        errorMessage = 'Mail gönderme zaman aşımına uğradı. Lütfen tekrar deneyin.';
-      } else if (err.message.includes('Failed to fetch')) {
-        errorMessage = 'Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edin.';
-      } else if (err.message.includes('NetworkError')) {
-        errorMessage = 'Ağ hatası. Lütfen tekrar deneyin.';
-      } else {
-        // Backend reason yakala
-        const m = /\{"error":\s*"([^"]+)"(?:,\s*"reason":\s*"([^"]+)")?/i.exec(err.message || '');
-        if (m) {
-          errorMessage = m[2] ? `${m[1]}: ${m[2]}` : m[1];
-        } else {
-          errorMessage = `Mail gönderilemedi`;
-        }
-      }
-      setSendError(errorMessage);
-      try {
-        toast.error(errorMessage, { autoClose: 8000, position: 'top-center' });
-      } catch (_) {
-        try { alert(errorMessage); } catch (_) {}
-      }
-    } finally {
-      setIsSending(false);
-    }
+    })
+    .catch(err => {
+      console.error('Mail gönderme hatası:', err);
+      try { toast.dismiss(); } catch {}
+      toast.error('Mail gönderilemedi', {
+        autoClose: 4000,
+        position: "top-right"
+      });
+    });
+  };
+
+  const handleSkipMail = () => {
+    // Popup'ı kapat ve web sitesine yönlendir
+    setShowMailPopup(false);
+    window.location.href = 'https://www.doquhome.com.tr';
   };
 
   return (
@@ -344,36 +297,36 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
         {showMailPopup && (
           <div className="popup-overlay">
             <div className="popup-content">
-              <h2 className="popup-title">Analiz Sonuçlarınızı Mail Olarak Almak İster misiniz?</h2>
-              {wantsMail === null && (
-                <div className="popup-buttons">
-                  <button className="btn btn-primary" onClick={() => handleMailChoice(true)}>Evet</button>
-                  <button className="btn btn-secondary" onClick={() => handleMailChoice(false)}>Hayır</button>
+              <h2 className="popup-title">Lütfen Mail Adresinizi Girin</h2>
+              <p style={{ fontSize: '0.95rem', color: '#666', marginBottom: '12px' }}>
+                Analiz sonuçlarınız e-posta adresinize gönderilecektir.
+              </p>
+              <input
+                type="email"
+                className="email-value-box"
+                placeholder="ornek@email.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                onKeyPress={e => {
+                  if (e.key === 'Enter' && email && !isSending && logId) {
+                    handleSendMail();
+                  }
+                }}
+                style={{ fontSize: '1.2rem', margin: '18px 0', width: '100%'}}
+              />
+              {sendError && (
+                <div style={{ color: '#c62828', marginTop: 4, marginBottom: 8, fontSize: '0.95rem' }}>
+                  {sendError}
                 </div>
               )}
-              {wantsMail === true && (
-                <>
-                  <input
-                    type="email"
-                    className="email-value-box"
-                    placeholder="E-posta adresinizi girin"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    style={{ fontSize: '1.2rem', margin: '18px 0', width: '100%'}}
-                  />
-                  {sendError && (
-                    <div style={{ color: '#c62828', marginTop: 4, marginBottom: 8, fontSize: '0.95rem' }}>
-                      {sendError}
-                    </div>
-                  )}
-                  <div className="popup-buttons">
-                    <button className="btn btn-primary" onClick={handleSendMail} disabled={!email || isSending || !logId}>
-                      {isSending ? "Gönderiliyor..." : "Gönder"}
-                    </button>
-                    <button className="btn btn-secondary" onClick={() => setShowMailPopup(false)} disabled={isSending}>Vazgeç</button>
-                  </div>
-                </>
-              )}
+              <div className="popup-buttons">
+                <button className="btn btn-primary" onClick={handleSendMail} disabled={!email || !logId}>
+                  Gönder
+                </button>
+                <button className="btn btn-secondary" onClick={handleSkipMail}>
+                  Vazgeç
+                </button>
+              </div>
             </div>
           </div>
         )}
