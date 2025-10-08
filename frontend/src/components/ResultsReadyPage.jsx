@@ -129,7 +129,7 @@ function generateAnalysisHtml(answers) {
   return html;
 }
 
-const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
+const ResultsReadyPage = ({ logId, answers, onShowResults, recommendation }) => {
   const [showMailPopup, setShowMailPopup] = useState(false);
   const [email, setEmail] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -137,13 +137,21 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
 
   const handleShowResultsClick = async () => {
     // Sonuçları görmeye tıklanınca analizAlindiMi: true gönder
+    // VE önerilen yastıkları kaydet
     if (logId) {
+      // Önerilen yastık isimlerini al
+      let pillowNames = [];
+      if (recommendation && recommendation.recommendation && Array.isArray(recommendation.recommendation)) {
+        pillowNames = recommendation.recommendation.map(pillow => pillow.isim || pillow.name).filter(Boolean);
+      }
+      
       fetch(API_ENDPOINTS.SAVE_MAIL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           logId,
-          analizAlindiMi: true
+          analizAlindiMi: true,
+          onerilen_yastiklar: pillowNames.length > 0 ? JSON.stringify(pillowNames) : null
         })
       });
     }
@@ -152,89 +160,110 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
   };
 
   const handleSendMail = async () => {
-    // Email kontrolü
+    // 1. Frontend format kontrolü
     const cleanedEmailPre = (email || '').trim();
     const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
     if (!cleanedEmailPre || !emailRegex.test(cleanedEmailPre)) {
-      toast.error('Geçerli bir email adresi girin!', {
+      toast.error('Lütfen geçerli bir e-posta adresi girin!', {
         autoClose: 5000,
-        position: "top-center"
+        position: "top-center",
+        style: { zIndex: 1001 } // Popup'tan yüksek
       });
-      return;
+      return; // Popup AÇIK KALSIN
     }
     
     if (!logId) {
       toast.error('Mail Gönderilemedi! Sayfayı yenileyin.', {
         autoClose: 5000,
-        position: "top-center"
+        position: "top-center",
+        style: { zIndex: 1001 } // Popup'tan yüksek
       });
-      return;
+      return; // Popup AÇIK KALSIN
     }
     
-    // Popup'ı hemen kapat ve sonuç sayfasına git
-    setShowMailPopup(false);
-    try {
-      localStorage.setItem('pillowCurrentPage', 'results');
-    } catch {}
-    onShowResults();
+    // 2. Loading durumu göster
+    setIsSending(true);
+    setSendError('');
     
-    // Toast bildirimini göster
-    try {
-      toast.info('Mail gönderiliyor...', { autoClose: 2000, position: 'top-center' });
-    } catch {}
-    
-    // Arka planda mail gönder
+    // 3. Backend'e domain kontrolü için gönder
     const analysisHtml = generateAnalysisHtml(answers);
     const cleanedEmail = cleanedEmailPre;
+    
+    // Önerilen yastık isimlerini al
+    let pillowNames = [];
+    if (recommendation && recommendation.recommendation && Array.isArray(recommendation.recommendation)) {
+      pillowNames = recommendation.recommendation.map(pillow => pillow.isim || pillow.name).filter(Boolean);
+    }
+    
     const requestBody = {
       email: cleanedEmail,
       logId: logId,
       analizAlindiMi: true,
-      analysisHtml: analysisHtml
+      analysisHtml: analysisHtml,
+      onerilen_yastiklar: pillowNames.length > 0 ? JSON.stringify(pillowNames) : null
     };
     
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
-    
-    fetch(API_ENDPOINTS.SAVE_MAIL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(requestBody),
-      signal: controller.signal,
-      cache: 'no-store',
-      keepalive: true // Sayfa değişse bile istek devam etsin
-    })
-    .then(response => {
-      clearTimeout(timeoutId);
-      const contentType = response.headers.get('content-type') || '';
-      if (!response.ok) {
-        return response.text().then(text => {
-          throw new Error(text || `HTTP ${response.status}`);
-        });
-      }
-      return response.json();
-    })
-    .then(result => {
-      if (result.success) {
-        // Önce mevcut toast'ları temizle
-        try { toast.dismiss(); } catch {}
-        // Sonra yeni toast göster
-        toast.success('Mailiniz başarıyla gönderildi!', {
-          autoClose: 4000,
-          position: "top-right"
-        });
-      } else {
-        throw new Error(result.error || 'Mail gönderilemedi');
-      }
-    })
-    .catch(err => {
-      console.error('Mail gönderme hatası:', err);
-      try { toast.dismiss(); } catch {}
-      toast.error('Mail gönderilemedi', {
-        autoClose: 4000,
-        position: "top-right"
+    try {
+      const response = await fetch(API_ENDPOINTS.SAVE_MAIL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(requestBody),
+        cache: 'no-store'
       });
-    });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          throw new Error('Mail gönderilemedi');
+        }
+        
+        // Backend'den hata geldi (domain geçersiz olabilir)
+        const errorMessage = errorData.error || 'Mail gönderilemedi';
+        setSendError(errorMessage);
+        toast.error(errorMessage, {
+          autoClose: 5000,
+          position: "top-center",
+          style: { zIndex: 1001 } // Popup'tan yüksek
+        });
+        setIsSending(false);
+        return; // Popup AÇIK KALSIN, hata göster
+      }
+      
+      const result = await response.json();
+      
+        if (result.success) {
+          // Başarılı! Popup'ı kapat ve sonuçları göster
+          setIsSending(false); // Loading durumunu kapat
+          setShowMailPopup(false);
+          try {
+            localStorage.setItem('pillowCurrentPage', 'results');
+          } catch {}
+          onShowResults();
+          
+          // Başarı mesajı
+          toast.success('Mailiniz başarıyla gönderildi!', {
+            autoClose: 4000,
+            position: "top-right",
+            style: { zIndex: 1001 } // Popup'tan yüksek
+          });
+        } else {
+          throw new Error(result.error || 'Mail gönderilemedi');
+        }
+    } catch (err) {
+      console.error('Mail gönderme hatası:', err);
+      const errorMessage = err.message || 'Mail gönderilemedi';
+      setSendError(errorMessage);
+      toast.error(errorMessage, {
+        autoClose: 5000,
+        position: "top-center",
+        style: { zIndex: 1001 } // Popup'tan yüksek
+      });
+      setIsSending(false);
+      // Popup AÇIK KALSIN
+    }
   };
 
   const handleSkipMail = () => {
@@ -295,8 +324,32 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
         </div>
         {/* Mail popup */}
         {showMailPopup && (
-          <div className="popup-overlay">
-            <div className="popup-content">
+          <div 
+            className="popup-overlay"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.3)', // Semi-transparent
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000
+            }}
+          >
+            <div 
+              className="popup-content"
+              style={{
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                padding: '32px',
+                maxWidth: '500px',
+                width: '95%',
+                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
+              }}
+            >
               <h2 className="popup-title">Lütfen Mail Adresinizi Girin</h2>
               <p style={{ fontSize: '0.95rem', color: '#666', marginBottom: '12px' }}>
                 Analiz sonuçlarınız e-posta adresinize gönderilecektir.
@@ -320,10 +373,14 @@ const ResultsReadyPage = ({ logId, answers, onShowResults }) => {
                 </div>
               )}
               <div className="popup-buttons">
-                <button className="btn btn-primary" onClick={handleSendMail} disabled={!email || !logId}>
-                  Gönder
+                <button 
+                  className="btn btn-primary" 
+                  onClick={handleSendMail} 
+                  disabled={!email || !logId || isSending}
+                >
+                  {isSending ? 'Gönderiliyor...' : 'Gönder'}
                 </button>
-                <button className="btn btn-secondary" onClick={handleSkipMail}>
+                <button className="btn btn-secondary" onClick={handleSkipMail} disabled={isSending}>
                   Vazgeç
                 </button>
               </div>

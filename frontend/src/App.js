@@ -325,6 +325,7 @@ function App() {
             onShowResults={handleShowResults}
             answers={answers}
             logId={safeLogId}
+            recommendation={apiResult}
           />
         );
       case 'results':

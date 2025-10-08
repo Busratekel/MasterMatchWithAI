@@ -39,6 +39,8 @@ from flask_limiter.util import get_remote_address
 from flask_mail import Mail, Message
 import re
 import unicodedata
+import socket
+from functools import wraps
 
 # Flask-Limiter uyarısını bastır (geliştirme ortamı için)
 warnings.filterwarnings("ignore", message="Using the in-memory storage")
@@ -159,6 +161,32 @@ def sanitize_email(raw_email: str) -> str:
     return normalized.strip()
 
 EMAIL_REGEX = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
+
+def validate_email_domain(email):
+    """
+    Email domain'inin gerçek olup olmadığını kontrol et
+    MX record veya A record varsa geçerli domain
+    """
+    try:
+        domain = email.split('@')[1]
+        
+        # MX record kontrolü (mail sunucusu var mı?)
+        try:
+            socket.getaddrinfo(domain, 'smtp', socket.AF_UNSPEC, socket.SOCK_STREAM)
+            return True, None
+        except socket.gaierror:
+            pass
+        
+        # A record kontrolü (domain var mı?)
+        try:
+            socket.gethostbyname(domain)
+            return True, None
+        except socket.gaierror:
+            return False, f"Domain '{domain}' bulunamadı veya geçersiz."
+    
+    except Exception as e:
+        # Hata durumunda geçerli kabul et (çok katı olmasın)
+        return True, None
 
 # --- Veritabanı Modelleri ---
 class KvkkMetin(db.Model):
@@ -535,9 +563,7 @@ def recommend():
         if not recommendations:
             return jsonify(error="Veritabanında yastık bulunamadı."), 500
         
-        # Önerilen yastıkların sadece isimlerini kaydet
-        onerilen_isimler = [y.get('isim', '') for y in recommendations if y.get('isim')]
-        onerilen_yastiklar_json = json.dumps(onerilen_isimler, ensure_ascii=False)
+        # Önerilen yastıklar henüz kaydedilmeyecek - sadece mail girilince kaydedilecek
         
         log = KullaniciLog(
             ad=ad,
@@ -547,8 +573,8 @@ def recommend():
             boy=str(boy),
             kilo=str(kilo),
             vki=str(vki),
-            cevaplar=json.dumps(responses, ensure_ascii=False),
-            onerilen_yastiklar=onerilen_yastiklar_json
+            cevaplar=json.dumps(responses, ensure_ascii=False)
+            # onerilen_yastiklar başta NULL olacak
         )
         db.session.add(log)
         db.session.commit()
@@ -687,16 +713,33 @@ def save_mail():
 
     # Email varsa kaydet (mail gönderilsin ya da gönderilmesin)
     if email:
-        # regex doğrulama
+        # 1. Format doğrulama
         if not EMAIL_REGEX.match(email):
-            return jsonify({'error': 'Geçersiz e-posta adresi.', 'field': 'email'}), 400
+            return jsonify({'error': 'Geçersiz e-posta formatı.', 'field': 'email'}), 400
+        
+        # 2. Domain doğrulama (gerçek domain mi?)
+        is_valid_domain, domain_error = validate_email_domain(email)
+        if not is_valid_domain:
+            return jsonify({
+                'error': 'Geçersiz e-posta adresi. Lütfen gerçek bir e-posta adresi girin.',
+                'reason': domain_error,
+                'field': 'email'
+            }), 400
+        
         # Mail bilgisini log kaydına ekle
         log.email = email
         
         # Kullanıcı cevaplarını al
         responses = json.loads(log.cevaplar) if log.cevaplar else {}
         
-        # Frontend'den öneri listesi geldiyse onu kullan, yoksa hesapla
+        # Önerilen yastıkları kaydet
+        # 1. Frontend'den direkt JSON string olarak geldi mi?
+        incoming_pillows_json = data.get('onerilen_yastiklar')
+        if incoming_pillows_json and not log.onerilen_yastiklar:
+            # Frontend'den JSON string olarak gelmiş, direkt kaydet
+            log.onerilen_yastiklar = incoming_pillows_json
+        
+        # 2. Yoksa frontend'den öneri listesi geldiyse onu kullan
         incoming_recs = data.get('recommendations')
         recommendations = None
         if isinstance(incoming_recs, list) and len(incoming_recs) > 0:
@@ -704,7 +747,7 @@ def save_mail():
         else:
             recommendations = calculate_pillow_recommendations(responses)
         
-        # Önerilen yastıkların sadece isimlerini kaydet (eğer henüz kaydedilmemişse)
+        # 3. Recommendations varsa ve henüz kaydedilmemişse kaydet
         if recommendations and not log.onerilen_yastiklar:
             onerilen_isimler = [y.get('isim', '') for y in recommendations if y.get('isim')]
             log.onerilen_yastiklar = json.dumps(onerilen_isimler, ensure_ascii=False)
