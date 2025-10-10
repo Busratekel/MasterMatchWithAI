@@ -4,6 +4,7 @@ import WelcomePage from './components/WelcomePage';
 import StepperForm from './components/StepperForm';
 import LoadingPage from './components/LoadingPage';
 import ResultsReadyPage from './components/ResultsReadyPage';
+import AdminPanel from './components/AdminPanel';
 import ResultsPage from './components/ResultsPage';
 import ResumePopup from './components/ResumePopup';
 import KvkkPdfModal from './components/KvkkPdfModal';
@@ -20,6 +21,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [questionError, setQuestionError] = useState(null);
   const [currentPage, setCurrentPage] = useState('splash');
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showResumePopup, setShowResumePopup] = useState(false);
   const [popupMode, setPopupMode] = useState('resume'); // 'resume' veya 'restart_only'
 
@@ -42,6 +44,14 @@ function App() {
   // Video ref
   const videoRef = useRef(null);
   
+  // Admin panel URL kontrolü
+  useEffect(() => {
+    // URL path'i /admin mi kontrol et
+    if (window.location.pathname === '/admin') {
+      setShowAdminPanel(true);
+    }
+  }, []);
+
   // Uygulama başlarken localStorage'dan yükleme için tek etki (24 saat kontrolü ile)
   useEffect(() => {
     try {
@@ -351,6 +361,25 @@ function App() {
         );
     }
   };
+
+  // Admin panel için özel render
+  if (showAdminPanel) {
+    return (
+      <div className="App">
+        <ToastContainer 
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
+        <AdminPanel />
+      </div>
+    );
+  }
 
   return (
     <div className="App">

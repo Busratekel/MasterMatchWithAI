@@ -6,6 +6,11 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
 
 // API Endpoint'leri
 export const API_ENDPOINTS = {
+  // Admin endpoints
+  ADMIN_LOGIN: `${API_BASE_URL}/api/admin/login`,
+  ADMIN_LOGS: `${API_BASE_URL}/api/admin/logs`,
+  ADMIN_STATS: `${API_BASE_URL}/api/admin/stats`,
+  ADMIN_SETTINGS: `${API_BASE_URL}/api/admin/settings`,
   HEALTH: `${API_BASE_URL}/api/health`,
   KVKK_ONAY_EKLE: `${API_BASE_URL}/api/kvkk_onay_ekle`,
   KVKK_METIN: `${API_BASE_URL}/api/kvkk_metin`,
