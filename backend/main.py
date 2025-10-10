@@ -178,8 +178,12 @@ EMAIL_REGEX = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
 
 # Admin credentials (production'da environment variable'dan alınmalı)
 # Admin panel credentials - .env'den oku
-ADMIN_USERNAME = os.getenv('ADMIN_USERNAME', 'admin')
-ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'changeme')  # Varsayılan değer - .env'de mutlaka değiştirin!
+ADMIN_USERNAME = os.getenv('ADMIN_USERNAME')
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
+
+# Güvenlik kontrolü
+if not ADMIN_USERNAME or not ADMIN_PASSWORD:
+    raise ValueError("ADMIN_USERNAME ve ADMIN_PASSWORD environment variables zorunludur!")
 
 # Active Directory ayarları
 AD_ENABLED = os.getenv('AD_ENABLED', 'False').lower() == 'true'
