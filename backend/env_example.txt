@@ -45,29 +45,6 @@ RATE_LIMIT_DEFAULT=10 per minute
 RATE_LIMIT_RECOMMEND=10 per minute
 RATE_LIMIT_KVKK=20 per minute
 
-# Admin panel giriş bilgileri (Active Directory kullanılıyorsa bu değerler kullanılmaz)
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=your-strong-password-here
-
-# ==========================================
-# ACTIVE DIRECTORY AYARLARI
-# ==========================================
-# AD sunucu bilgileri
-AD_SERVER=10.16.1.55
-AD_PORT=3389
-AD_USE_SSL=False
-AD_USE_TLS=True
-
-# AD domain bilgileri
-AD_DOMAIN=doqu
-AD_BASE_DN=DC=doqu,DC=local
-
-# Yetkili grup (opsiyonel - belirtilmezse tüm domain kullanıcıları giriş yapabilir)
-AD_AUTHORIZED_GROUP=CN=AdminGroup,OU=Groups,DC=yourdomain,DC=com
-
-# AD authentication kullanılsın mı? (True/False)
-AD_ENABLED=True
-
 # ==========================================
 # LOGLAMA AYARLARI
 # ==========================================
