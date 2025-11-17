@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import './LoadingPage.css';
 import loadingVideo from '../assets/loading-video.mp4';
 import loadingVideoBaseline from '../assets/loading-video-baseline-audio.mp4';
@@ -13,6 +13,42 @@ const LoadingPage = React.forwardRef((props, ref) => {
   const [statusText, setStatusText] = useState('');
   const [videoDurationMs, setVideoDurationMs] = useState(0);
   const fallbackTimerRef = useRef(null);
+  const [hasTerminated, setHasTerminated] = useState(false);
+  const timerStartTimeRef = useRef(null);
+  const timerRemainingMsRef = useRef(null);
+
+  const clearFallbackTimer = useCallback(() => {
+    if (fallbackTimerRef.current) {
+      clearTimeout(fallbackTimerRef.current);
+      fallbackTimerRef.current = null;
+    }
+    timerStartTimeRef.current = null;
+    timerRemainingMsRef.current = null;
+  }, []);
+
+  const finishLoading = useCallback(() => {
+    setHasTerminated((prev) => {
+      if (prev) return prev;
+      clearFallbackTimer();
+      try {
+        if (props.onLoadingFinished) props.onLoadingFinished();
+      } catch (_) {}
+      return true;
+    });
+  }, [clearFallbackTimer, props.onLoadingFinished]);
+
+  const scheduleFallbackTimer = useCallback((ms) => {
+    clearFallbackTimer();
+    timerRemainingMsRef.current = ms;
+    timerStartTimeRef.current = Date.now();
+    fallbackTimerRef.current = setTimeout(() => {
+      // Timer sadece video oynatılıyorsa çalışsın (video durdurulmuşsa geçiş yapma)
+      const video = videoRef.current;
+      if (video && !video.paused) {
+        finishLoading();
+      }
+    }, Math.max(2000, ms));
+  }, [clearFallbackTimer, finishLoading]);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -27,6 +63,7 @@ const LoadingPage = React.forwardRef((props, ref) => {
   }, [isMuted]);
 
   useEffect(() => {
+    if (hasTerminated) return;
     if (videoRef.current) {
       if (isPlaying) {
         try {
@@ -37,18 +74,17 @@ const LoadingPage = React.forwardRef((props, ref) => {
         videoRef.current.pause();
       }
     }
-  }, [isPlaying]);
+  }, [isPlaying, hasTerminated]);
 
   useEffect(() => {
+    if (hasTerminated) {
+      return () => clearFallbackTimer();
+    }
     // Video olayları ve fail-safe geçiş
-    const clearFallback = () => { if (fallbackTimerRef.current) { clearTimeout(fallbackTimerRef.current); fallbackTimerRef.current = null; } };
     const scheduleFallback = (ms) => {
-      clearFallback();
-      fallbackTimerRef.current = setTimeout(() => {
-        try { if (props.onLoadingFinished) props.onLoadingFinished(); } catch(_) {}
-      }, Math.max(2000, ms));
+      scheduleFallbackTimer(ms);
     };
-    const handleEnded = () => { setIsPlaying(false); clearFallback(); if (props.onLoadingFinished) props.onLoadingFinished(); };
+    const handleEnded = () => { setIsPlaying(false); finishLoading(); };
     const handlePlay = () => { setIsPlaying(true); };
     const handlePause = () => setIsPlaying(false);
     const handleTimeUpdate = () => {
@@ -61,6 +97,7 @@ const LoadingPage = React.forwardRef((props, ref) => {
       } catch(_) {}
     };
     const handleLoadedMeta = () => {
+      if (hasTerminated) return;
       try {
         const v = videoRef.current;
         if (!v) return;
@@ -85,7 +122,7 @@ const LoadingPage = React.forwardRef((props, ref) => {
       scheduleFallback(20000);
     }
     return () => {
-      clearFallback();
+      clearFallbackTimer();
       if (video) {
         video.removeEventListener('ended', handleEnded);
         video.removeEventListener('play', handlePlay);
@@ -94,7 +131,7 @@ const LoadingPage = React.forwardRef((props, ref) => {
         video.removeEventListener('loadedmetadata', handleLoadedMeta);
       }
     };
-  }, [props.onLoadingFinished]);
+  }, [props.onLoadingFinished, hasTerminated, clearFallbackTimer, scheduleFallbackTimer, finishLoading]);
 
   const handleSoundToggle = () => {
     setIsMuted((prev) => {
@@ -112,8 +149,42 @@ const LoadingPage = React.forwardRef((props, ref) => {
       setStatusText(newPlaying ? 'Video Oynatılıyor' : 'Video Duraklatıldı');
       setShowStatus(true);
       setTimeout(() => setShowStatus(false), 1200);
+      
+      if (newPlaying) {
+        // Video oynatılıyor - kalan süreye göre timer'ı yeniden başlat
+        if (timerRemainingMsRef.current && timerStartTimeRef.current) {
+          const elapsed = Date.now() - timerStartTimeRef.current;
+          const remaining = Math.max(0, timerRemainingMsRef.current - elapsed);
+          if (remaining > 0) {
+            scheduleFallbackTimer(remaining);
+          }
+        } else if (videoDurationMs > 0) {
+          // İlk kez oynatılıyorsa video süresine göre başlat
+          scheduleFallbackTimer(videoDurationMs + 500);
+        }
+      } else {
+        // Video durduruldu - timer'ı durdur ama kalan süreyi sakla
+        if (fallbackTimerRef.current && timerStartTimeRef.current && timerRemainingMsRef.current) {
+          const elapsed = Date.now() - timerStartTimeRef.current;
+          timerRemainingMsRef.current = Math.max(0, timerRemainingMsRef.current - elapsed);
+          clearTimeout(fallbackTimerRef.current);
+          fallbackTimerRef.current = null;
+          timerStartTimeRef.current = null;
+        }
+      }
+      
       return newPlaying;
     });
+  };
+
+  const handleSkip = () => {
+    try {
+      setIsPlaying(false);
+      if (videoRef.current) {
+        videoRef.current.pause();
+      }
+    } catch (_) {}
+    finishLoading();
   };
 
   return (
@@ -157,6 +228,14 @@ const LoadingPage = React.forwardRef((props, ref) => {
                 <div className="loading-video-status-popup">{statusText}</div>
               )}
               <div className="loading-video-author-text">Fzt.Teoman GÜNDÜZ</div>
+              <button
+                type="button"
+                className="loading-skip-button"
+                onClick={handleSkip}
+                aria-label="Analiz sonuçlarına geç"
+              >
+                Geç
+              </button>
             </div>
           </div>
         </div>

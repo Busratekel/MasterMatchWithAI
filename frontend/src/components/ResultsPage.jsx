@@ -88,20 +88,8 @@ const ResultsPage = ({ recommendation, onRestart, logId, answers }) => {
           const pillowName = pillow.isim || "İsimsiz Yastık";
           const imageUrl = pillow.gorsel;
           const productUrl = pillow.link;
-
-          // Kullanıcının yan üstü uyku pozisyonu seçip seçmediğini kontrol et
-          const userSelectedYanUstu = answers && answers.uyku_pozisyonu && 
-            (Array.isArray(answers.uyku_pozisyonu) ? 
-              answers.uyku_pozisyonu.includes('Yan uyku pozisyonu') : 
-              answers.uyku_pozisyonu === 'Yan uyku pozisyonu');
-
-          // Yastığın yan üstü uyku pozisyonuna sahip olup olmadığını kontrol et
-          const pillowHasYanUstu = pillow.uyku_pozisyonu && 
-            pillow.uyku_pozisyonu.toLowerCase().includes('yan');
-
-          // Mükemmel eşleşme etiketi gösterilecek mi?
-          // Kullanıcının seçimi önemli değil, sadece yastığın yan uyku pozisyonuna sahip olup olmadığı önemli
-          const showPerfectMatch = pillowHasYanUstu;
+          // Mükemmel eşleşme etiketi artık tüm yastıklar için gösterilecek
+          const showPerfectMatch = true;
 
           return (
             <div key={pillow.id} className="pillow-card-new">
@@ -184,6 +172,19 @@ const ResultsPage = ({ recommendation, onRestart, logId, answers }) => {
                   />
                   <div className="pillow-info">
                     <h5>Diz Arası Yastık</h5>
+                    <div style={{ 
+                      display: 'inline-block', 
+                      background: '#ff6f00', 
+                      color: '#fff', 
+                      padding: '4px 12px', 
+                      borderRadius: '12px', 
+                      fontSize: '0.85rem', 
+                      fontWeight: '600', 
+                      marginBottom: '12px',
+                      marginTop: '8px'
+                    }}>
+                      Yan Yatış İçin Uygundur!
+                    </div>
                     <p>Yan uyku pozisyonunda bacaklarınız arasına yerleştirerek omurga hizasını korur ve daha rahat bir uyku sağlar.</p>
                     <a 
                       href={kneePillowUrl}

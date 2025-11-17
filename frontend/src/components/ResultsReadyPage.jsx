@@ -52,55 +52,102 @@ const QUESTIONS = [
 // Cevaba göre analiz metni döndüren fonksiyon
 function getAnswerAnalysis(qid, answer) {
   if (!answer) return null;
+
+  const answerStr = (() => {
+    if (Array.isArray(answer)) return answer.join(', ');
+    if (typeof answer === 'object' && answer !== null) {
+      try {
+        return Object.entries(answer).map(([k, v]) => `${k}: ${v}`).join(', ');
+      } catch (_) {
+        return JSON.stringify(answer);
+      }
+    }
+    return String(answer);
+  })();
+
   switch (qid) {
     case 'uyku_pozisyonu':
-      if (answer.includes('Yan')) return 'Yan uyku pozisyonunu tercih edenler için, boyun ve omurga hizasını koruyan destekli yastıklar daha rahat bir uyku sağlar.';
-      if (answer.includes('Sırt')) return 'Sırt üstü uyuyanlar için orta yükseklikte yastıklar, baş ve boyun için daha dengeli bir destek sağlar.';
-      if (answer.includes('Yüz')) return 'Yüz üstü uyuyanlar için ince ve yumuşak yapıda yastıklar daha konforlu olur.';
-      if (answer.includes('Hareketli Uyku Pozisyonu')) return 'Uyku pozisyonu sık sık değişenler için, farklı bölgelere uyum sağlayan esnek yapılı yastıklar ideal bir seçenek olur.';
+      if (answerStr.includes('Yan')) return 'Yan uyku pozisyonunu tercih edenler için, boyun ve omurga hizasını koruyan destekli yastıklar daha rahat bir uyku sağlar.';
+      if (answerStr.includes('Sırt')) return 'Sırt üstü uyuyanlar için orta yükseklikte yastıklar, baş ve boyun için daha dengeli bir destek sağlar.';
+      if (answerStr.includes('Yüz')) return 'Yüz üstü uyuyanlar için ince ve yumuşak yapıda yastıklar daha konforlu olur.';
+      if (answerStr.includes('Hareketli Uyku Pozisyonu')) return 'Uyku pozisyonu sık sık değişenler için, farklı bölgelere uyum sağlayan esnek yapılı yastıklar ideal bir seçenek olur.';
       break;
     case 'uyku_düzeni':
-      if (answer.includes('terleme')) return 'Terleme sorununuz için nefes alabilen, serinletici ve pamuk kumaşlı yastıklar önerilir.';
-      if (answer.includes('horlama')) return 'Horlama problemi için nefes almayı kolaylaştıracak yapıda olan yastıklar faydalı olabilir.';
-      if (answer.includes('Reflü')) return 'Reflü için baş ve boyun bölgesini hafifçe yükselten yastıklar önerilir.';
-      if (answer.includes('Hiçbir problem')) return 'Uyku düzeniniz iyi ise orta sertlikte ve klasik formda yastıklar günlük kullanım için uygundur.';
+      if (answerStr.toLowerCase().includes('terleme')) return 'Terleme sorununuz için nefes alabilen, serinletici ve pamuk kumaşlı yastıklar önerilir.';
+      if (answerStr.toLowerCase().includes('horlama')) return 'Horlama problemi için nefes almayı kolaylaştıracak yapıda olan yastıklar faydalı olabilir.';
+      if (answerStr.includes('Reflü')) return 'Reflü için baş ve boyun bölgesini hafifçe yükselten yastıklar önerilir.';
+      if (answerStr.includes('Hiçbir problem')) return 'Uyku düzeniniz iyi ise orta sertlikte ve klasik formda yastıklar günlük kullanım için uygundur.';
       break;
     case 'tempo':
-      if (answer.includes('Yoğun')) return 'Yoğun tempolu günlerde, stresi azaltan ve basıncı dengeleyen sünger yastıklar tercih edilmelidir.';
-      if (answer.includes('orta')) return 'Orta tempolu günlerde, dengeli destek sunan ve rahatlık sağlayan orta sertlikte yastıklar tercih edilmelidir.';
-      if (answer.includes('sakin')) return 'Sakin tempolu günlerde, hafif ve nefes alabilir yapıda, konfor odaklı yastıklar tercih edilmelidir.';
+      if (answerStr.includes('Yoğun')) return 'Yoğun tempolu günlerde, stresi azaltan ve basıncı dengeleyen sünger yastıklar tercih edilmelidir.';
+      if (answerStr.toLowerCase().includes('orta')) return 'Orta tempolu günlerde, dengeli destek sunan ve rahatlık sağlayan orta sertlikte yastıklar tercih edilmelidir.';
+      if (answerStr.toLowerCase().includes('sakin')) return 'Sakin tempolu günlerde, hafif ve nefes alabilir yapıda, konfor odaklı yastıklar tercih edilmelidir.';
       break;
     case 'agri_bolge':
-      if (answer.includes('Sadece Bel Ağrısı')) return 'Bel ağrısı yaşamamak için omurga hizasını korumak oldukça önemlidir.';
-      if (answer.includes('Sadece Omuz Ağrısı')) return 'Omuz ağrıları, genellikle boyun desteği sağlamayan yastıklar kullanıldığında ortaya çıkan ağrılardır, boyun desteği sağlayan yastık kullanılması ideal bir uyku sağlar.';
-      if (answer.includes('Sadece Boyun Ağrısı')) return 'Boyun bölgesine tam destek sağlayan yastık kullanımı, boyun ağrılarının azalmasına yardımcı olur.';
-      if (answer.includes('Hepsi')) return 'Hem omurga hizasını, hem de boyun desteğini bir arada sağlamak, rahat bir uyku için oldukça önemlidir.';
-      if (answer.includes('Hiçbir ağrı')) return 'Ağrınız bulunmuyorsa orta sertlikte ve klasik formda yastıklar günlük kullanım için uygundur.';
+      const selected = Array.isArray(answer) ? answer : [answerStr];
+      const normalize = (text) => (text || '').toLowerCase();
+      const hasBel = selected.some(opt => normalize(opt).includes('bel'));
+      const hasOmuz = selected.some(opt => normalize(opt).includes('omuz'));
+      const hasBoyun = selected.some(opt => normalize(opt).includes('boyun'));
+      const hasNone = selected.some(opt => normalize(opt).includes('hiçbir'));
+      const hasAll = hasBel && hasOmuz && hasBoyun;
+
+      if (hasAll) {
+        return 'Bel ağrısı yaşamamak için omurga hizasını korumak oldukça önemlidir. Omuz ağrıları, genellikle boyun desteği sağlamayan yastıklar kullanıldığında ortaya çıkan ağrılardır, boyun desteği sağlayan yastık kullanılması ideal bir uyku sağlar. Boyun bölgesine tam destek sağlayan yastık kullanımı, boyun ağrılarının azalmasına yardımcı olur. Hem omurga hizasını, hem de boyun desteğini bir arada sağlamak, rahat bir uyku için oldukça önemlidir.';
+      }
+      if (hasBel) return 'Bel ağrısı yaşamamak için omurga hizasını korumak oldukça önemlidir.';
+      if (hasOmuz) return 'Omuz ağrıları, genellikle boyun desteği sağlamayan yastıklar kullanıldığında ortaya çıkan ağrılardır, boyun desteği sağlayan yastık kullanılması ideal bir uyku sağlar.';
+      if (hasBoyun) return 'Boyun bölgesine tam destek sağlayan yastık kullanımı, boyun ağrılarının azalmasına yardımcı olur.';
+      if (hasNone || answerStr.includes('Hiçbir ağrı')) return 'Ağrınız bulunmuyorsa orta sertlikte ve klasik formda yastıklar günlük kullanım için uygundur.';
       break;
     
     case 'dogal_malzeme':
-      if (answer.includes('Evet')) return 'Alerji/hassasiyet durumunuz için elyaf dolgulu veya visco sünger dolgulu yastıklar önerilir.';
-      if (answer.includes('Hayır')) return 'Doğal malzemelere karşı hassasiyetiniz yoksa tüm yastık türlerini kullanabilirsiniz.';
+      if (answerStr.includes('Evet')) return 'Alerji/hassasiyet durumunuz için elyaf dolgulu veya visco sünger dolgulu yastıklar önerilir.';
+      if (answerStr.includes('Hayır')) return 'Doğal malzemelere karşı hassasiyetiniz yoksa tüm yastık türlerini kullanabilirsiniz.';
       break;
     case 'ideal_sertlik':
-      if (answer.includes('Yumuşak')) return 'Yumuşak yastıklar boyun desteği sağlarken konfor sunar.';
-      if (answer.includes('Orta-Sert')) return 'Orta-sert yastıklar denge ile birlikte daha fazla destek sağlar.';
-      if (answer.includes('Sert')) return 'Sert yastıklar maksimum boyun desteği sağlar.';
+      if (answerStr.includes('Yumuşak')) return 'Yumuşak yastıklar boyun desteği sağlarken konfor sunar.';
+      if (answerStr.includes('Orta-Sert')) return 'Orta-sert yastıklar denge ile birlikte daha fazla destek sağlar.';
+      if (answerStr.includes('Sert')) return 'Sert yastıklar maksimum boyun desteği sağlar.';
       break;
     case 'yastik_yukseklik':
-      if (answer.includes('Alçak')) return 'Alçak yükseklik; yüzüstü uyuyanlar veya ince yastık sevenler için daha uygundur.';
-      if (answer.includes('Orta')) return 'Orta yükseklik çoğu kullanıcı için dengeli bir seçimdir; boyun hizasını rahatça korur.';
-      if (answer.includes('Yüksek')) return 'Yüksek yükseklik; geniş omuz yapısı olan veya yan uyuyan kullanıcılar için boynu destekler.';
+      if (answerStr.includes('Alçak')) return 'Alçak yükseklik; yüzüstü uyuyanlar veya ince yastık sevenler için daha uygundur.';
+      if (answerStr.includes('Orta')) return 'Orta yükseklik çoğu kullanıcı için dengeli bir seçimdir; boyun hizasını rahatça korur.';
+      if (answerStr.includes('Yüksek')) return 'Yüksek yükseklik; geniş omuz yapısı olan veya yan uyuyan kullanıcılar için boynu destekler.';
       break;
     case 'sertlik':
-      if (answer.includes('Yumuşak')) return 'Yumuşak yataklarda yumuşak yastıklar tercih edilebilir.';
-      if (answer.includes('Orta')) return 'Orta sertlikte yataklar için orta sertlikteki yastıklar uygundur.';
-      if (answer.includes('Sert')) return 'Sert yataklarda sert yastıklar tercih edilebilir.';
+      if (answerStr.includes('Yumuşak')) return 'Yumuşak yataklarda yumuşak yastıklar tercih edilebilir.';
+      if (answerStr.includes('Orta')) return 'Orta sertlikte yataklar için orta sertlikteki yastıklar uygundur.';
+      if (answerStr.includes('Sert')) return 'Sert yataklarda sert yastıklar tercih edilebilir.';
       break;
     default:
       return null;
   }
   return null;
+}
+
+function formatAnswerForDisplay(value, questionId) {
+  if (Array.isArray(value)) {
+    if (questionId === 'agri_bolge') {
+      const normalize = (text = '') => text.toLowerCase();
+      const hasBel = value.some(opt => normalize(opt).includes('bel'));
+      const hasOmuz = value.some(opt => normalize(opt).includes('omuz'));
+      const hasBoyun = value.some(opt => normalize(opt).includes('boyun'));
+      if (hasBel && hasOmuz && hasBoyun) {
+        return 'Hepsi';
+      }
+    }
+    return value.join(', ');
+  }
+  if (typeof value === 'object' && value !== null) {
+    try {
+      return Object.entries(value).map(([k, v]) => `${k}: ${v}`).join(', ');
+    } catch (_) {
+      return JSON.stringify(value);
+    }
+  }
+  if (value === undefined || value === null) return '';
+  return String(value);
 }
 
 // Analizli HTML metni oluşturucu
@@ -109,17 +156,8 @@ function generateAnalysisHtml(answers) {
   QUESTIONS.filter(q => q.id !== 'bmi_age').forEach(q => {
     const userAnswer = answers && answers[q.id];
     if (!userAnswer) return;
-    let answerText;
-    if (Array.isArray(userAnswer)) {
-      answerText = userAnswer.join(', ');
-    } else if (typeof userAnswer === 'object' && userAnswer !== null) {
-      answerText = Object.entries(userAnswer).map(([k, v]) => `${k}: ${v}`).join(', ');
-    } else if (typeof userAnswer === 'string' || typeof userAnswer === 'number') {
-      answerText = userAnswer;
-    } else {
-      answerText = JSON.stringify(userAnswer);
-    }
-    const analysis = getAnswerAnalysis(q.id, answerText);
+    const answerText = formatAnswerForDisplay(userAnswer, q.id);
+    const analysis = getAnswerAnalysis(q.id, userAnswer);
     html += `<div style="margin-bottom:18px;">
       <b>${q.question}</b><br>
       <span>Cevabınız: ${answerText}</span><br>

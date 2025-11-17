@@ -1007,8 +1007,8 @@ def save_mail():
                     continue  # ana listede göstermiyoruz
                 img = yastik.get('gorsel') or ''
                 href = yastik.get('link') or ''
-                uyku_poz = normalize(yastik.get('uyku_pozisyonu') or '')
-                is_perfect_match = 'yan' in uyku_poz
+                # Frontend ile aynı davranış: tüm ürünler için Mükemmel Eşleşme rozeti göster
+                is_perfect_match = True
 
                 # Kart: İsim + Görsel (tıklanabilir) + Ürünü İncele + (opsiyonel rozet)
                 piece = '<div style="display:inline-block;vertical-align:top;margin:10px;padding:12px;border:1px solid #eee;border-radius:10px;text-align:center;max-width:240px;position:relative;">'
@@ -1031,6 +1031,7 @@ def save_mail():
                     piece += '<div style="display:inline-flex;align-items:center;gap:6px;color:#444;font-weight:600;font-size:12px;margin-bottom:6px;">'
                     piece += '<span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#2e7d32;color:#fff;line-height:18px;text-align:center;font-weight:700;">+</span>'
                     piece += 'Diz Arası Yastık</div>'
+                    piece += '<div style="display:inline-block;background:#ff6f00;color:#fff;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;margin-bottom:10px;">Yan Yatış İçin Uygundur</div>'
                     piece += f'<a href="{knee_href}" target="_blank" rel="noopener noreferrer" style="display:inline-block;">'
                     piece += f'<img src="{knee_img}" alt="Diz Arası Yastık" style="max-width:180px;height:auto;border-radius:8px;border:1px solid #f0f0f0;"/>'
                     piece += '</a>'
