@@ -18,7 +18,8 @@ export const API_ENDPOINTS = {
   RECOMMEND: `${API_BASE_URL}/api/recommend`,
   QUESTIONS: `${API_BASE_URL}/api/questions`,
   YASTIKLAR: `${API_BASE_URL}/api/yastiklar`,
-  SAVE_MAIL: `${API_BASE_URL}/api/save-mail`
+  SAVE_MAIL: `${API_BASE_URL}/api/save-mail`,
+  ADMIN_EXPORT_EXCEL: `${API_BASE_URL}/api/admin/logs/export-excel`
 };
 
 export default API_ENDPOINTS; 

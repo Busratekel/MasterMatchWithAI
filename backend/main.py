@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import sys
 import os
+import pandas as pd
+from io import BytesIO
+from flask import send_file
 
 # Python encoding ayarları
 if sys.platform.startswith('win'):
@@ -1181,6 +1184,8 @@ def admin_get_logs():
             
             logs.append({
                 'id': log.id,
+                'ad': log.ad,
+                'soyad': log.soyad,
                 'email': log.email,
                 'tarih': tarih_str,
                 'cevaplar': cevaplar_json,
@@ -1358,6 +1363,91 @@ def admin_update_settings():
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': 'Ayarlar güncellenemedi'}), 500
+
+@app.route('/api/admin/logs/export-excel', methods=['GET'])
+@admin_required
+def admin_export_logs_excel():
+    """Admin paneli için log kayıtlarını Excel olarak indir"""
+    try:
+        # Query parametrelerini al
+        search = request.args.get('search', '').strip()
+        date_from = request.args.get('date_from', '').strip()
+        date_to = request.args.get('date_to', '').strip()
+
+        # Base query
+        query = KullaniciLog.query
+
+        # Arama filtresi
+        if search:
+            query = query.filter(
+                db.or_(
+                    KullaniciLog.email.ilike(f'%{search}%'),
+                    KullaniciLog.cevaplar.ilike(f'%{search}%'),
+                    KullaniciLog.onerilen_yastiklar.ilike(f'%{search}%')
+                )
+            )
+
+        # Tarih filtresi
+        if date_from:
+            try:
+                from_date = datetime.strptime(date_from, '%Y-%m-%d')
+                from_date = datetime.combine(from_date.date(), datetime.min.time())
+                from_date = from_date.replace(tzinfo=TURKEY_TZ)
+                query = query.filter(KullaniciLog.tarih >= from_date)
+            except ValueError:
+                pass
+        if date_to:
+            try:
+                to_date = datetime.strptime(date_to, '%Y-%m-%d')
+                to_date = datetime.combine(to_date.date(), datetime.max.time())
+                to_date = to_date.replace(tzinfo=TURKEY_TZ)
+                query = query.filter(KullaniciLog.tarih <= to_date)
+            except ValueError:
+                pass
+
+        logs = query.order_by(KullaniciLog.tarih.desc()).all()
+        data = []
+        for log in logs:
+            try:
+                cevaplar_json = json.loads(log.cevaplar) if log.cevaplar else {}
+            except:
+                cevaplar_json = {}
+            try:
+                onerilen_yastiklar = json.loads(log.onerilen_yastiklar) if log.onerilen_yastiklar else []
+            except:
+                onerilen_yastiklar = []
+            data.append({
+                'ID': log.id,
+                'Ad': log.ad,
+                'Soyad': log.soyad,
+                'E-posta': log.email,
+                'Tarih': log.tarih.isoformat() if log.tarih else '',
+                'IP Adresi': log.ip_adresi,
+                'Yaş': log.yas,
+                'Boy': log.boy,
+                'Kilo': log.kilo,
+                'VKI': log.vki,
+                'Cevaplar': json.dumps(cevaplar_json, ensure_ascii=False),
+                'Önerilen Yastıklar': json.dumps(onerilen_yastiklar, ensure_ascii=False),
+                'İncelenen Ürünler': log.incelenen_urunler,
+                'İncelendi mi': log.incelendi_mi,
+                'Analiz Sonucu Alındı mı': log.analiz_sonucu_alindi_mi
+            })
+        df = pd.DataFrame(data)
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Logs')
+        output.seek(0)
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=f"kullanici_loglari_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        )
+    except Exception as e:
+        print(f"Excel export hatası: {e}")
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': 'Excel dosyası oluşturulamadı'}), 500
 
 # Uygulamayı çalıştırmak için
 if __name__ == '__main__':

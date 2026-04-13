@@ -284,16 +284,17 @@ const AdminPanel = () => {
     }
   };
 
+
   // Arama ve filtreleme
   const handleSearch = () => {
     setCurrentPage(1);
-    loadLogs(1);
+    loadLogsWithToken(authToken, 1);
   };
 
   // Sayfa değiştirme
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
-    loadLogs(newPage);
+    loadLogsWithToken(authToken, newPage);
   };
 
   // Tarihi formatla
@@ -343,6 +344,37 @@ const AdminPanel = () => {
     setShowDetailModal(false);
     setDetailLog(null);
   };
+
+  const exportExcel = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (dateFrom) params.append('date_from', dateFrom);
+      if (dateTo) params.append('date_to', dateTo);
+      const response = await fetch(`/api/admin/logs/export-excel?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${authToken}`,
+        }
+      });
+      if (!response.ok) {
+        alert('Excel dosyası indirilemedi!');
+        return;
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'kullanici_loglari.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Bir hata oluştu: ' + err.message);
+    }
+  };
+
 
   // Tarih sıralama toggle
   const toggleSortOrder = () => {
@@ -477,7 +509,7 @@ const AdminPanel = () => {
         </div>
       )}
 
-      {/* Filtreler */}
+      {/* Filtreler ve Excel butonu */}
       <div className="admin-filters">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px', flexWrap: 'wrap' }}>
           <div style={{ flex: '1', minWidth: '300px' }}>
@@ -504,6 +536,9 @@ const AdminPanel = () => {
               />
               <button onClick={handleSearch} disabled={loading}>
                 {loading ? 'Yükleniyor...' : 'Ara'}
+              </button>
+              <button onClick={exportExcel} className="excel-export-btn" style={{marginLeft: '10px'}}>
+                Excel'e Aktar
               </button>
             </div>
           </div>
@@ -560,6 +595,8 @@ const AdminPanel = () => {
                 <thead>
                   <tr>
                     <th>ID</th>
+                    <th>Ad</th>
+                    <th>Soyad</th>
                     <th 
                       onClick={toggleSortOrder} 
                       style={{ cursor: 'pointer', userSelect: 'none' }}
@@ -580,6 +617,8 @@ const AdminPanel = () => {
                   {logs.map((log) => (
                     <tr key={log.id}>
                       <td>{log.id}</td>
+                      <td>{log.ad || '-'}</td>
+                      <td>{log.soyad || '-'}</td>
                       <td>{formatDate(log.tarih)}</td>
                       <td>{log.email || '-'}</td>
                       <td title={formatAnswers(log.cevaplar)}>
