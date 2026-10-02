@@ -44,8 +44,11 @@ else:
 
 # Flask uygulamasını import et
 try:
-    from main import app
+    from main import app, db, ensure_yatak_sertlik_column
     print("✓ Flask uygulaması başarıyla yüklendi")
+    with app.app_context():
+        db.create_all()
+        ensure_yatak_sertlik_column()
 except Exception as e:
     print(f"✗ Flask uygulaması yüklenemedi: {e}")
     import traceback

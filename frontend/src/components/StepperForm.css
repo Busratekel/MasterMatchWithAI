@@ -60,6 +60,19 @@ html, body {
   padding: 40px 20px;
   position: relative;
   left: 10px;
+  overflow: visible;
+}
+
+.step-trial-badge {
+  position: absolute;
+  left: 10px;
+  top: 2px;
+  width: 125px;
+  height: auto;
+  z-index: 6;
+  pointer-events: none;
+  user-select: none;
+  background: transparent;
 }
 
 .sidebar-footer {
@@ -444,6 +457,16 @@ html, body {
     transform: none !important;
     z-index: 1 !important;
   }
+
+  .step-trial-badge {
+    position: absolute !important;
+    left: 8px !important;
+    top: 8px !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 150px !important;
+    z-index: 6 !important;
+  }
   
   /* Butonları ve göstergeleri düzenle */
   .form-navigation {
@@ -623,6 +646,15 @@ html, body {
   .form-nav-right {
     order: 3 !important;
   }
+  .step-trial-badge {
+    position: absolute !important;
+    left: 8px !important;
+    top: 68px !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 80px !important;
+    z-index: 6 !important;
+  }
 }
 
 /* ===== DESKTOP SIDEBAR AYARLARI ===== */
@@ -676,5 +708,14 @@ html, body {
     margin-bottom: 20px !important;
     background-color: transparent !important;
     mix-blend-mode: multiply;
+  }
+  .step-trial-badge {
+    position: absolute !important;
+    left: 8px !important;
+    top: 8px !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 130px !important;
+    z-index: 6 !important;
   }
 }                                                    

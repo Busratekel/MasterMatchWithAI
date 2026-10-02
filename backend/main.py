@@ -134,13 +134,149 @@ MAIL_REPLY_TO = os.getenv('MAIL_REPLY_TO', app.config['MAIL_DEFAULT_SENDER'])
 
 mail = Mail(app)
 
+IADE_PROSEDURU_METNI = """DOQU HOME KOŞULSUZ İADE GARANTİSİ
+
+Doqu Home, Yastıklarda "100 gece Koşulsuz İade Garantisi" sunmaktadır. Bu garanti, satın alınan ürünün teslim tarihinden itibaren başlar.
+
+İade/Değişim prosedürü şu şekildedir:
+
+1) Deneme Süresi: Ürünü teslim aldığınız tarihten itibaren 100 gece deneme hakkınız bulunmaktadır.
+Koşulsuz iadenin geçerli olması için doquhome.com.tr web sitesinde bulunan "Master Match Yastık Seçim Robotu" web sayfasından kişiye özel ürün seçiminin tamamlanması gereklidir.
+
+2) Garanti Kaydı: Koşulsuz iade garantisinin geçerli olması için ürün satın alındıktan sonra ürün teslim tarihinden itibaren 30 gün sonrasında ve en geç 100 gün içerisinde doquhome.com.tr web sitesinde bulunan "%100 Koşulsuz İade Garantisi" sayfasındaki formun doldurulması gerekmektedir. Bu formun doldurulmaması durumunda koşulsuz iade garantisi geçerli olmayacaktır. İade talebi için doldurulan form ve Master Match yastık seçim robotu tarafından kişiye gönderilen sonuç mail çıktısıyla birlikte iade edilecek bayiye gidilerek ürün iadesi yapılmalıdır. Web sitesi üzerinden yapılan alışverişlerde iade formu doldurulduktan sonra ürün Doqu A.Ş. fabrikaya karşı ödemeli olarak kargo edilmelidir.
+
+3) İade/Değişim Talebi: Deneme süresi içinde üründen memnun kalmamanız durumunda 3. maddede belirtilen şartların karşılanması halinde iade veya değişim talebinde bulunabilirsiniz. Öncelikli olarak değişim tavsiye edilir, ancak tüketici iade talebinde de bulunabilir.
+
+4) Online Alışverişlerde Değişim: Online alışverişlerde 100 gece deneme kapsamında değişim ve iade hakkı bulunur. Online değişimde, kalan tutar hediye çeki olarak yüklenir ve para iadesi yapılmaz.
+
+5) Ürün Koşulları: İade veya değişim yapılacak ürünün bazı koşulları karşılaması gerekmektedir. Kullanım esnasında yırtılmış, sıvı teması olmuş, yanmış ya da aksesuarları hasar görmüş ürünler iade alınmaz.
+
+6) Kapsam Dışı Ürün ve Durumlar: Outlet ve teşhir ürünleri kampanya kapsamı dışındadır. Otel, yurt, misafirhane ve ticari işletmeler gibi toplu satışlar kampanya kapsamına dâhil değildir. E-ticaret pazaryerlerinden veya yurt dışından yapılan alışverişler bu kampanyaya dâhil değildir.
+
+7) Ücret ve Kesintiler: İade/değişimde kargo bedeli alıcıya aittir. İlk değişim talebinde herhangi bir ücret kesintisi yapılmayacaktır. İkinci ve üçüncü değişim talebinde ürün bedelinden %50 ücret kesintisi yapılacaktır. Değişim talebi yılda 3 ürünle sınırlı olacaktır. Değişim sonrası satın alınan ürün için değişim işlemleri yapılırken değiştirilmek istenen ürünün satın alındığı dönemdeki fiyatı geçerli olacaktır. Yeni alınacak ürün için güncel fiyat geçerli olacaktır. Yeni alınan ürün ücreti daha yüksek ise tüketici tarafından fark ödemesi yapılacaktır. Değişim sonucunda yeni alınan ürün değiştirilmek istenen üründen daha ucuz ise satış noktası müşteriye ilk ödeme yöntemi ne ise o şekilde geri ödeme yapacaktır.
+
+8) Değişim Hizmet Bedeli: Ürünün 100 gece içerisinde değiştirilmesi durumunda tüketici değişim hizmet bedeli olarak ürünün perakende satış fiyatının %10'u kadar hizmet bedeli ödemesini satış noktasına yapacaktır. İade alınan ürünler İstikbal, Bellona, Mondihome mağazalarından aldığında satın aldıkları mağazadan, doquhome.com.tr web sitemizden yapılan alışveriş iadelerinde ise Doqu Home genel merkeze kargo ile iade işlemi yapacaktır.
+
+9) Hediye ve Promosyonlar: Ürünün hediyesi veya promosyonu var ise, değişim yapılacak üründe hediye verilmez. Hediye olarak alışverişten sonra verilen yastıklar koşulsuz iade kapsamında değildir.
+
+10) Geçerlilik Alanı: Kampanya İstikbal, Bellona, Mondihome ve Doqu Home mağazaları, bellona.com.tr ve www.doquhome.com.tr üzerinden yapılan alışverişlerde geçerlidir.
+
+11) Koşulsuz iade geçerliliği olan ürünler: Koşulsuz iade garantisi Master Match yastık seçim robotunda tanımlı bulunan ve sistemin önerdiği yastıklarla sınırlıdır.
+
+Bu garanti, Doqu Home'un ürünlerine duyduğu güveni temsil eder.
+"""
+
+
+def build_recommendation_mail_html(recommendations, logo_cid=None):
+    """Soru/cevap ve mükemmel eşleşme olmadan, iade belgesi tarzı mail HTML'i üretir."""
+    def normalize(s: str) -> str:
+        return (s or '').lower()
+
+    def is_knee_pillow(name: str) -> bool:
+        n = normalize(name)
+        return ('diz arası' in n) or ('diz arasi' in n)
+
+    tarih_str = datetime.now().strftime('%d.%m.%Y')
+    tarih_saat_str = datetime.now().strftime('%d.%m.%Y %H:%M')
+
+    product_rows = []
+    for yastik in recommendations or []:
+        name = yastik.get('isim') or 'Yastık'
+        if is_knee_pillow(name):
+            continue
+        img = yastik.get('gorsel') or ''
+        href = yastik.get('link') or ''
+
+        img_html = ''
+        if img:
+            img_tag = f'<img src="{img}" alt="{name}" style="width:72px;height:72px;object-fit:contain;border:1px solid #eee;border-radius:6px;background:#fff;"/>'
+            if href:
+                img_html = f'<a href="{href}" target="_blank" rel="noopener noreferrer">{img_tag}</a>'
+            else:
+                img_html = img_tag
+        else:
+            img_html = '<div style="width:72px;height:72px;border:1px solid #eee;border-radius:6px;background:#f7f7f7;"></div>'
+
+        name_html = f'<a href="{href}" target="_blank" rel="noopener noreferrer" style="color:#1f2d3d;text-decoration:none;font-weight:600;">{name}</a>' if href else f'<span style="font-weight:600;color:#1f2d3d;">{name}</span>'
+
+        product_rows.append(f'''
+        <tr>
+          <td style="padding:10px 8px;border-bottom:1px solid #ececec;width:84px;vertical-align:middle;">{img_html}</td>
+          <td style="padding:10px 8px;border-bottom:1px solid #ececec;vertical-align:middle;font-size:15px;">{name_html}</td>
+        </tr>
+        ''')
+
+    products_section = ''.join(product_rows) if product_rows else '''
+        <tr><td colspan="2" style="padding:12px;color:#666;">Önerilen ürün bulunamadı.</td></tr>
+    '''
+
+    if logo_cid:
+        logo_html = f'<img src="cid:{logo_cid}" alt="Master Match / Doqu Home" style="max-width:220px;height:auto;margin:0 auto 10px;display:block;"/>'
+    else:
+        logo_html = ''
+
+    return f'''
+    <div style="font-family:Arial,Helvetica,sans-serif;color:#222;max-width:680px;margin:0 auto;line-height:1.55;">
+      <div style="text-align:right;font-size:12px;color:#777;margin-bottom:8px;">{tarih_saat_str} &nbsp; Doqu Home</div>
+      <div style="text-align:center;margin:8px 0 18px;">
+        {logo_html}
+        <div style="font-size:22px;font-weight:700;letter-spacing:0.5px;">MASTER MATCH</div>
+        <div style="font-size:18px;font-weight:700;margin-top:4px;">YASTIK ÖNERİ SONUCU</div>
+      </div>
+
+      <p style="margin:0 0 10px;"><b>Tarih:</b> {tarih_str}</p>
+
+      <p style="margin:0 0 12px;">
+        İhtiyaçlarınızı anlamak ve size en uygun yastığı önerebilmek için geliştirilen
+        <b>Master Match Yastık Seçim Robotu</b> uygulamasını doğru ve eksiksiz tamamladığınız için teşekkür ederiz.
+        Master Match sorularına verdiğiniz yanıtlar doğrultusunda önerdiğimiz yastıklar aşağıda belirtilmiştir.
+      </p>
+      <p style="margin:0 0 18px;">
+        Size önerilen yastıkları inceleyebilir, dilediğiniz yastığı tercih edebilirsiniz.
+      </p>
+
+      <div style="font-size:15px;font-weight:700;margin:8px 0 6px;">Önerilen Ürünler</div>
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;border:1px solid #ececec;border-radius:8px;overflow:hidden;">
+        {products_section}
+      </table>
+
+      <p style="margin:18px 0 10px;">
+        Eğer memnun kalmazsanız <b>100 gün</b> içinde kolayca değiştirebilirsiniz.
+      </p>
+
+      <div style="margin-top:18px;padding:12px 14px;background:#f5f8fb;border:1px solid #d9e4ef;border-radius:8px;font-size:13px;">
+        <b>Bilgi:</b> Doqu Home Koşulsuz İade Garantisi / iade prosedürü bu e-postaya <b>ek dosya</b> olarak gönderilmiştir.
+        İade işlemlerinde bu sonuç çıktısını ve ekteki prosedürü kullanabilirsiniz.
+      </div>
+
+      <p style="margin:20px 0 0;font-size:12px;color:#777;">
+        Bu belge Master Match Yastık Seçim Robotu sonuç çıktısıdır. Doqu Home
+      </p>
+    </div>
+    '''
+
+
+def get_mail_logo_bytes():
+    """Mail için logo dosyasını okur."""
+    candidates = [
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', 'welcomelogo.png'),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'frontend', 'src', 'assets', 'welcomelogo.png'),
+    ]
+    for path in candidates:
+        try:
+            if os.path.exists(path):
+                with open(path, 'rb') as f:
+                    return f.read()
+        except Exception:
+            continue
+    return None
+
+
 # Mail gönderme fonksiyonu
-def send_analysis_email(email, mail_content, from_address=None, bcc_emails=None):
+def send_analysis_email(email, mail_content, from_address=None, bcc_emails=None, attachments=None, inline_images=None):
     try:
-        # sessiz
-        
         msg = Message(
-            subject='Yastık Analiz Raporunuz - DoquHome',
+            subject='Master Match Yastık Öneri Sonucu - Doqu Home',
             sender=from_address or app.config['MAIL_DEFAULT_SENDER'],
             recipients=[email]
         )
@@ -154,13 +290,36 @@ def send_analysis_email(email, mail_content, from_address=None, bcc_emails=None)
         bcc_final = bcc_emails or MAIL_BCC_LIST
         if bcc_final:
             msg.bcc = [e.strip() for e in bcc_final.split(';') if e.strip()]
-        
-        # Direkt gelen HTML içeriği kullan
+
         msg.html = mail_content
+
+        # Inline görseller: [(cid, filename, content_bytes, mime_type), ...]
+        for item in (inline_images or []):
+            try:
+                cid, filename, content, mime_type = item
+                msg.attach(
+                    filename,
+                    mime_type,
+                    content,
+                    'inline',
+                    headers=[('Content-ID', f'<{cid}>'), ('X-Attachment-Id', cid)]
+                )
+            except Exception as attach_err:
+                print(f"Mail inline görsel hatası: {attach_err}")
+
+        # Ek dosyalar: [(filename, content_bytes, mime_type), ...]
+        for item in (attachments or []):
+            try:
+                filename, content, mime_type = item
+                msg.attach(filename, mime_type, content)
+            except Exception as attach_err:
+                print(f"Mail ek dosya hatası: {attach_err}")
+
         mail.send(msg)
         return True, None
     except Exception as e:
         print(f"Mail gönderme hatası: {e}")
+        traceback.print_exc()
         return False, str(e)
 
 def sanitize_email(raw_email: str) -> str:
@@ -403,7 +562,8 @@ class Yastik(db.Model):
     isim = db.Column(db.String(150), nullable=False)
     gorsel = db.Column(db.String(250))
     link = db.Column(db.String(250))
-    sertlik = db.Column(db.String(50))
+    sertlik = db.Column(db.String(50))  # Yastık sertliği (ideal_sertlik sorusu)
+    yatak_sertlik = db.Column(db.String(100))  # Uyumlu yatak sertliği (sertlik sorusu)
     uyku_pozisyonu = db.Column(db.String(350))
     bmi = db.Column(db.String(50))
     dogal_malzeme = db.Column(db.String(350))
@@ -508,6 +668,10 @@ def calculate_pillow_recommendations(responses):
         toplam_puan = 0
         # Her soru için puan hesapla
         for soru_key, agirlik in SORU_AGIRLIKLARI.items():
+            # Bu sorular aşağıda özel mantıkla işleniyor
+            if soru_key in ('ideal_sertlik', 'sertlik', 'yastik_yukseklik', 'bmi'):
+                continue
+
             # Kullanıcı cevabını al
             kullanici_cevap = None
             if soru_key == 'yas':
@@ -585,7 +749,7 @@ def calculate_pillow_recommendations(responses):
                 elif ans_norm == 'orta-yuksek' and ('orta-yuksek' in yastik_norm or 'yuksek' in yastik_norm):
                     toplam_puan += SORU_AGIRLIKLARI.get('yastik_yukseklik', 3)
 
-        # İdeal sertlik için özel kontrol
+        # İdeal yastık sertliği → yastik.sertlik
         ideal_sertlik_cevap = responses.get('ideal_sertlik')
         if ideal_sertlik_cevap and yastik.sertlik:
             ideal_sertlik_str = str(ideal_sertlik_cevap).lower().strip()
@@ -601,17 +765,37 @@ def calculate_pillow_recommendations(responses):
             
             # Direkt eşleşme kontrolü
             if ideal_sertlik_normalized in yastik_sertlik_normalized:
-                toplam_puan += agirlik
+                toplam_puan += SORU_AGIRLIKLARI.get('ideal_sertlik', 5)
             else:
                 # İçinde geçen kelimelere göre eşleşme
                 if ideal_sertlik_normalized == 'sert' and ('sert' in yastik_sertlik_normalized or 'orta-sert' in yastik_sertlik_normalized):
-                    toplam_puan += agirlik
+                    toplam_puan += SORU_AGIRLIKLARI.get('ideal_sertlik', 5)
                 elif ideal_sertlik_normalized == 'orta' and ('orta' in yastik_sertlik_normalized or 'orta-sert' in yastik_sertlik_normalized or 'yumusak-orta' in yastik_sertlik_normalized):
-                    toplam_puan += agirlik
+                    toplam_puan += SORU_AGIRLIKLARI.get('ideal_sertlik', 5)
                 elif ideal_sertlik_normalized == 'yumusak' and ('yumusak' in yastik_sertlik_normalized or 'yumusak-orta' in yastik_sertlik_normalized):
-                    toplam_puan += agirlik
+                    toplam_puan += SORU_AGIRLIKLARI.get('ideal_sertlik', 5)
                 elif ideal_sertlik_normalized == 'orta-sert' and ('orta-sert' in yastik_sertlik_normalized or 'sert' in yastik_sertlik_normalized or 'orta' in yastik_sertlik_normalized):
-                    toplam_puan += agirlik
+                    toplam_puan += SORU_AGIRLIKLARI.get('ideal_sertlik', 5)
+
+        # Yatak sertliği → yastik.yatak_sertlik
+        yatak_sertlik_cevap = responses.get('sertlik')
+        yatak_sertlik_ozellik = getattr(yastik, 'yatak_sertlik', None)
+        if yatak_sertlik_cevap and yatak_sertlik_ozellik:
+            cevap_norm = normalize_turkish(str(yatak_sertlik_cevap).lower().strip())
+            cevap_norm = cevap_norm.replace(' yatak', '').strip()
+            cevap_norm = cevap_norm.replace('orta sert', 'orta-sert').replace('orta – sert', 'orta-sert')
+            ozellik_norm = normalize_turkish(str(yatak_sertlik_ozellik).lower().strip())
+            ozellik_norm = ozellik_norm.replace('orta sert', 'orta-sert').replace('orta – sert', 'orta-sert')
+
+            if cevap_norm in ozellik_norm:
+                toplam_puan += SORU_AGIRLIKLARI.get('sertlik', 1)
+            else:
+                if cevap_norm == 'sert' and ('sert' in ozellik_norm or 'orta-sert' in ozellik_norm):
+                    toplam_puan += SORU_AGIRLIKLARI.get('sertlik', 1)
+                elif cevap_norm in ('orta', 'orta-sert') and ('orta' in ozellik_norm or 'orta-sert' in ozellik_norm):
+                    toplam_puan += SORU_AGIRLIKLARI.get('sertlik', 1)
+                elif cevap_norm == 'yumusak' and ('yumusak' in ozellik_norm or 'yumusak-orta' in ozellik_norm):
+                    toplam_puan += SORU_AGIRLIKLARI.get('sertlik', 1)
 
         # Doğal malzeme alerjisi için özel kontrol
         dogal_malzeme_cevap = responses.get('dogal_malzeme')
@@ -708,7 +892,7 @@ QUESTIONS = [
     {'id': 'tempo', 'question': 'Günlük yaşam temponuzu nasıl tanımlarsınız?', 'type': 'radio', 'options': ['Oldukça sakin bir tempom var.','Genelde orta tempoda, dengeli bir günüm oluyor.', 'Yoğun tempolu bir gün geçiriyorum.'], 'info': 'Yoğun tempolu yaşamda vücut daha fazla destek ve dinlenmeye ihtiyaç duyar. Doğru yastık, günün yorgunluğunu hafifletir.', 'order': 6},
     {'id': 'agri_bolge', 'question': 'Sabahları belirli bir bölgede ağrı hissediyor musunuz?', 'type': 'checkbox', 'options': ['Hiçbir ağrı hissetmiyorum', 'Sadece Bel Ağrısı', 'Sadece Omuz Ağrısı', 'Sadece Boyun Ağrısı', 'Hepsi'], 'info': 'Boyun, omuz veya bel ağrısı; yanlış yastık seçiminden kaynaklanıyor olabilir. Vücudunuzu dinleyin, ihtiyacınıza uygun yastığı seçin.', 'order': 7},
     {'id': 'dogal_malzeme', 'question': 'Doğal malzemelere (kaz tüyü,yün,bambu,pamuk gibi) karşı alerjiniz veya hassasiyetiniz var mı ?', 'type': 'radio', 'options': ['Hayır,yok', 'Evet,bu tür doğal malzemelere karşı alerjim,hassasiyetim var'], 'info': 'Bazı kişiler doğal dolgu malzemelerine (kaz tüyü,yün,bambu,pamuk gibi) karşı alerjik reaksiyon veya hassasiyet gösterebilir.Bu kişiler için,elyaf dolgulu veya visco sünger dolgulu ürünlerin kullanımı daha sağlıklı ve konforlu bir tercih olabilir', 'order': 8},
-    {'id': 'sertlik', 'question': 'Yatak sertlik derecenizi belirtir misiniz?', 'type': 'radio', 'options': ['Yumuşak Yatak', 'Orta-Sert Yatak', 'Sert Yatak'], 'info': 'Yatak sertliği, yastığın yüksekliği ve dolgunluğu ile uyumlu olmalı. Uyumlu ikili, daha sağlıklı bir uyku sağlar.', 'order': 9}
+    {'id': 'sertlik', 'question': 'Son Olarak Size Daha İyi Sonuç Verebilmemiz İçin Yatak Sertlik Derecenizi Belirtir misiniz?', 'type': 'radio', 'options': ['Yumuşak Yatak', 'Orta-Sert Yatak', 'Sert Yatak'], 'info': 'Yatak sertliği, yastığın yüksekliği ve dolgunluğu ile uyumlu olmalı. Uyumlu ikili, daha sağlıklı bir uyku sağlar.', 'order': 9}
 ]
 
 # --- API Endpoint'leri ---
@@ -932,7 +1116,6 @@ def save_mail():
         analiz_alindi_mi = data.get('analizAlindiMi', False)
         from_address = data.get('from_address')
         bcc_emails = data.get('bcc_emails')
-        analysis_html = data.get('analysisHtml')
 
         # sessiz
 
@@ -989,72 +1172,27 @@ def save_mail():
             onerilen_isimler = [y.get('isim', '') for y in recommendations if y.get('isim')]
             log.onerilen_yastiklar = json.dumps(onerilen_isimler, ensure_ascii=False)
         
-        if recommendations:
-            # Frontend mantığıyla aynı: Diz Arası Yastık ana listede görünmesin
-            def normalize(s: str) -> str:
-                try:
-                    return s.lower().encode('utf-8').decode('utf-8')
-                except Exception:
-                    return (s or '').lower()
+        logo_bytes = get_mail_logo_bytes()
+        logo_cid = 'mastermatch_logo' if logo_bytes else None
+        complete_mail_content = build_recommendation_mail_html(recommendations or [], logo_cid=logo_cid)
+        iade_attachment = (
+            'Doqu_Home_Kosulsuz_Iade_Proseduru.txt',
+            IADE_PROSEDURU_METNI.encode('utf-8'),
+            'text/plain'
+        )
+        inline_images = []
+        if logo_bytes and logo_cid:
+            inline_images.append((logo_cid, 'welcomelogo.png', logo_bytes, 'image/png'))
 
-            def is_knee_pillow(name: str) -> bool:
-                if not name:
-                    return False
-                n = normalize(name)
-                return ('diz arası' in n) or ('diz arasi' in n)
+        mail_sent, mail_error = send_analysis_email(
+            email,
+            complete_mail_content,
+            from_address,
+            bcc_emails,
+            attachments=[iade_attachment],
+            inline_images=inline_images
+        )
 
-            cards_html = []
-            for yastik in recommendations:
-                name = yastik.get('isim') or 'Yastık'
-                if is_knee_pillow(name):
-                    continue  # ana listede göstermiyoruz
-                img = yastik.get('gorsel') or ''
-                href = yastik.get('link') or ''
-                # Frontend ile aynı davranış: tüm ürünler için Mükemmel Eşleşme rozeti göster
-                is_perfect_match = True
-
-                # Kart: İsim + Görsel (tıklanabilir) + Ürünü İncele + (opsiyonel rozet)
-                piece = '<div style="display:inline-block;vertical-align:top;margin:10px;padding:12px;border:1px solid #eee;border-radius:10px;text-align:center;max-width:240px;position:relative;">'
-                if is_perfect_match:
-                    piece += '<div style="position:absolute;top:8px;right:8px;background:#ff6f00;color:#fff;font-size:11px;font-weight:700;padding:6px 8px;border-radius:999px;line-height:1;">⭐ Mükemmel Eşleşme</div>'
-                piece += f'<div style="font-weight:600;margin-bottom:8px;color:#333;">{name}</div>'
-                if img:
-                    if href:
-                        piece += f'<a href="{href}" target="_blank" rel="noopener noreferrer"><img src="{img}" alt="{name}" style="max-width:220px;height:auto;border-radius:8px;border:1px solid #f0f0f0;"/></a>'
-                    else:
-                        piece += f'<img src="{img}" alt="{name}" style="max-width:220px;height:auto;border-radius:8px;border:1px solid #f0f0f0;"/>'
-                if href:
-                    piece += f'<div style="margin-top:10px;"><a href="{href}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:8px 14px;border-radius:6px;background:#1976d2;color:#fff;text-decoration:none;">Ürünü İncele</a></div>'
-
-                # Mükemmel Eşleşme ise aynı kutu içinde "+" ikonu ve Diz Arası Yastık mini-kartı
-                if is_perfect_match:
-                    knee_href = 'https://www.doquhome.com.tr/urun/diz-arasi-yastik-26-x-21-x-16-5-cm-beyaz'
-                    knee_img = 'https://www.doquhome.com.tr/idea/kl/05/myassets/products/672/diz-arasi-yastik04.jpg?revision=1751466969'
-                    piece += '<div style="margin-top:12px;border-top:1px dashed #e5e5e5;padding-top:10px;text-align:center;">'
-                    piece += '<div style="display:inline-flex;align-items:center;gap:6px;color:#444;font-weight:600;font-size:12px;margin-bottom:6px;">'
-                    piece += '<span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#2e7d32;color:#fff;line-height:18px;text-align:center;font-weight:700;">+</span>'
-                    piece += 'Diz Arası Yastık</div>'
-                    piece += '<div style="display:inline-block;background:#ff6f00;color:#fff;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;margin-bottom:10px;">Yan Yatış İçin Uygundur</div>'
-                    piece += f'<a href="{knee_href}" target="_blank" rel="noopener noreferrer" style="display:inline-block;">'
-                    piece += f'<img src="{knee_img}" alt="Diz Arası Yastık" style="max-width:180px;height:auto;border-radius:8px;border:1px solid #f0f0f0;"/>'
-                    piece += '</a>'
-                    piece += f'<div style="margin-top:8px;"><a href="{knee_href}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:6px 12px;border-radius:6px;background:#455a64;color:#fff;text-decoration:none;font-size:12px;">Ürünü İncele</a></div>'
-                    piece += '</div>'
-
-                piece += '</div>'
-                cards_html.append(piece)
-
-            yastik_html = f'''<div style="text-align:center;">{''.join(cards_html)}</div>'''
-
-            complete_mail_content = f'''
-            {analysis_html or ''}
-            <hr style="margin: 24px 0; border: 1px solid #ddd;">
-            {yastik_html}
-            '''
-        else:
-            complete_mail_content = analysis_html or log.cevaplar
-        
-        mail_sent, mail_error = send_analysis_email(email, complete_mail_content, from_address, bcc_emails)
         if not mail_sent:
             # Mail gönderilemedi ama email bilgisini kaydet
             log.analiz_sonucu_alindi_mi = analiz_alindi_mi
@@ -1449,10 +1587,37 @@ def admin_export_logs_excel():
         traceback.print_exc()
         return jsonify({'success': False, 'error': 'Excel dosyası oluşturulamadı'}), 500
 
+def ensure_yatak_sertlik_column():
+    """Mevcut veritabanına yatak_sertlik kolonunu ekler (yoksa)."""
+    try:
+        dialect = db.engine.dialect.name
+        with db.engine.connect() as conn:
+            if dialect == 'sqlite':
+                rows = conn.execute(db.text("PRAGMA table_info(yastik)")).fetchall()
+                cols = {row[1] for row in rows}
+                if 'yatak_sertlik' not in cols:
+                    conn.execute(db.text("ALTER TABLE yastik ADD COLUMN yatak_sertlik VARCHAR(100)"))
+                    conn.commit()
+                    print("✓ yastik.yatak_sertlik kolonu eklendi (sqlite)")
+            else:
+                # MSSQL / diğerleri
+                result = conn.execute(db.text("""
+                    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE TABLE_NAME = 'yastik' AND COLUMN_NAME = 'yatak_sertlik'
+                """)).scalar()
+                if not result:
+                    conn.execute(db.text("ALTER TABLE yastik ADD yatak_sertlik NVARCHAR(100) NULL"))
+                    conn.commit()
+                    print("✓ yastik.yatak_sertlik kolonu eklendi")
+    except Exception as e:
+        print(f"yatak_sertlik kolon kontrolü: {e}")
+
+
 # Uygulamayı çalıştırmak için
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        ensure_yatak_sertlik_column()
     environment = os.getenv('FLASK_ENV', 'development')
     if environment != 'production':
         print("🚀 Backend geliştirme modunda başlatılıyor... http://localhost:5001")

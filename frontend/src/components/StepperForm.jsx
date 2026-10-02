@@ -4,6 +4,7 @@ import StepSidebar from './StepSidebar';
 import StepContent from './StepContent';
 import InfoPage from './InfoPage';
 import LoadingPage from './LoadingPage';
+import trialBadge from '../assets/100-gun-deneme-suresi.png';
 
 const isMobile = typeof window !== 'undefined' && window.innerWidth <= 700;
 
@@ -156,12 +157,12 @@ const StepperForm = ({
     if (!currentQuestion) return false;
     const answer = answers[currentQuestion.id];
     if (currentQuestion.id === 'bmi_age') {
-      // Yaş 0-7 ise sadece yaş seçiliyse ilerlenebilsin, 8+ ise hem yaş hem vki gereksin
+      // Yaş 0-7 ise sadece yaş seçiliyse ilerlenebilsin, 8+ ise yaş + boy + kilo (vki) gereksin
       if (answer && answer.yas_gercek !== undefined && answer.yas_gercek !== "") {
         if (Number(answer.yas_gercek) <= 7) {
           return true;
         } else {
-          return !!answer.vki;
+          return !!answer.vki && answer.boy !== '' && answer.kilo !== '';
         }
       }
       return false;
@@ -176,6 +177,11 @@ const StepperForm = ({
       if (!questions || questions.length === 0) return false;
       return questions.every(q => {
           const answer = answers[q.id];
+          if (q.id === 'bmi_age') {
+              if (!answer || answer.yas_gercek === undefined || answer.yas_gercek === '') return false;
+              if (Number(answer.yas_gercek) <= 7) return true;
+              return !!answer.vki && answer.boy !== '' && answer.kilo !== '';
+          }
           if (q.type === 'checkbox') {
               return answer && answer.length > 0;
           }
@@ -217,6 +223,11 @@ const StepperForm = ({
           />
         )}
         <div className="stepper-content-card" ref={contentTopRef}>
+          <img
+            src={trialBadge}
+            alt="100 gün deneme süresi"
+            className="step-trial-badge"
+          />
           {currentQuestion ? (
             <StepContent
               question={currentQuestion}

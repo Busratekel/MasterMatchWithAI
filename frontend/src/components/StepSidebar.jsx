@@ -12,7 +12,9 @@ const StepSidebar = ({ questions, currentStep, answeredSteps, answers, onStepCli
       return Array.isArray(answer) && answer.length > 0;
     }
     if (question.type === 'bmi_age') {
-      return answer && answer.yas_gercek !== undefined && answer.yas_gercek !== "";
+      if (!answer || answer.yas_gercek === undefined || answer.yas_gercek === "") return false;
+      if (Number(answer.yas_gercek) <= 7) return true;
+      return !!answer.vki && answer.boy !== '' && answer.kilo !== '';
     }
     return !!answer;
   };

@@ -224,21 +224,22 @@ const ResultsReadyPage = ({ logId, answers, onShowResults, recommendation }) => 
     setSendError('');
     
     // 3. Backend'e domain kontrolü için gönder
-    const analysisHtml = generateAnalysisHtml(answers);
     const cleanedEmail = cleanedEmailPre;
     
-    // Önerilen yastık isimlerini al
-    let pillowNames = [];
+    // Önerilen yastıkları tam obje olarak gönder (isim + görsel + link)
+    let recommendationList = [];
     if (recommendation && recommendation.recommendation && Array.isArray(recommendation.recommendation)) {
-      pillowNames = recommendation.recommendation.map(pillow => pillow.isim || pillow.name).filter(Boolean);
+      recommendationList = recommendation.recommendation;
     }
     
     const requestBody = {
       email: cleanedEmail,
       logId: logId,
       analizAlindiMi: true,
-      analysisHtml: analysisHtml,
-      onerilen_yastiklar: pillowNames.length > 0 ? JSON.stringify(pillowNames) : null
+      recommendations: recommendationList,
+      onerilen_yastiklar: recommendationList.length > 0
+        ? JSON.stringify(recommendationList.map(p => p.isim || p.name).filter(Boolean))
+        : null
     };
     
     try {

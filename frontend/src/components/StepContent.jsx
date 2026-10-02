@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Tooltip from '@mui/material/Tooltip';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
-import Slider from '@mui/material/Slider';
+// import Slider from '@mui/material/Slider'; // Eski slider UI - yoruma alındı
 import './StepContent.css';
 
 // Tüm görselleri import et (Webpack build için gerekli)
@@ -74,7 +74,97 @@ const IMAGE_MAP = {
 
 const minBoy = 120, maxBoy = 220;
 const minKilo = 30, maxKilo = 220;
-const yasOptions = Array.from({ length: 67 }, (_, i) => i.toString()).concat('65+');
+const yasSelectOptions = Array.from({ length: 86 }, (_, i) => ({
+  value: String(i),
+  label: i === 85 ? '85+' : String(i),
+}));
+const boySelectOptions = Array.from({ length: maxBoy - minBoy + 1 }, (_, i) => {
+  const boy = minBoy + i;
+  return { value: String(boy), label: `${boy} cm` };
+});
+const kiloSelectOptions = Array.from({ length: maxKilo - minKilo + 1 }, (_, i) => {
+  const kilo = minKilo + i;
+  return { value: String(kilo), label: `${kilo} kg` };
+});
+
+function BmiDropdown({
+  id,
+  title,
+  hint,
+  value,
+  options,
+  disabled = false,
+  open,
+  onToggle,
+  onChange,
+}) {
+  const listRef = useRef(null);
+  const safeValue = value && typeof value === 'object' && value.value !== undefined
+    ? String(value.value)
+    : (value === undefined || value === null ? '' : String(value));
+  const selected = options.find((opt) => String(opt.value) === safeValue);
+  const selectedLabel = selected ? String(selected.label) : '';
+
+  useEffect(() => {
+    if (!open || !listRef.current) return;
+    const active = listRef.current.querySelector('.bmi-dd-option.selected');
+    if (active && typeof active.scrollIntoView === 'function') {
+      active.scrollIntoView({ block: 'nearest' });
+    }
+  }, [open, safeValue]);
+
+  return (
+    <div className={`bmi-dropdown-field${disabled ? ' disabled' : ''}${open ? ' open' : ''}`}>
+      <span className="bmi-dropdown-title" id={`${id}-label`}>{title}</span>
+      <div className="bmi-dd">
+        <button
+          type="button"
+          id={id}
+          className={`bmi-dd-trigger${safeValue ? ' has-value' : ''}${open ? ' open' : ''}`}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-labelledby={`${id}-label`}
+          disabled={disabled}
+          onClick={() => !disabled && onToggle()}
+        >
+          <span className="bmi-dd-texts">
+            <span className="bmi-dd-hint">{hint}</span>
+            {selectedLabel ? <span className="bmi-dd-value">{selectedLabel}</span> : null}
+          </span>
+          <span className="bmi-dd-chevron" aria-hidden="true" />
+        </button>
+        {open && !disabled && (
+          <ul
+            className="bmi-dd-menu"
+            role="listbox"
+            ref={listRef}
+            aria-labelledby={`${id}-label`}
+          >
+            {options.map((opt) => {
+              const optValue = String(opt.value);
+              const optLabel = String(opt.label);
+              const isSelected = safeValue === optValue;
+              return (
+                <li
+                  key={optValue}
+                  role="option"
+                  aria-selected={isSelected}
+                  className={`bmi-dd-option${isSelected ? ' selected' : ''}`}
+                  onClick={() => {
+                    onChange(optValue);
+                    onToggle(false);
+                  }}
+                >
+                  {optLabel}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function VKIBar({ vki }) {
   const min = 10, max = 40;
@@ -93,46 +183,103 @@ function VKIBar({ vki }) {
 
 const StepContent = ({ question, answer, onAnswerChange, answers }) => {
   // Tüm hook'lar en başta, koşulsuz
-  const [localAge, setLocalAge] = useState('0');
-  const [localHeight, setLocalHeight] = useState(minBoy);
-  const [localWeight, setLocalWeight] = useState(minKilo);
+  const [localAge, setLocalAge] = useState('');
+  const [localHeight, setLocalHeight] = useState('');
+  const [localWeight, setLocalWeight] = useState('');
   const [bmiValue, setBmiValue] = useState('');
   const [vkiInfoOpen, setVkiInfoOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(null); // 'yas' | 'boy' | 'kilo' | null
   const isFirstMount = useRef(true);
+  const ageNumber = (() => {
+    if (localAge && typeof localAge === 'object' && localAge.value !== undefined) {
+      return Number(localAge.value);
+    }
+    if (localAge === '' || localAge === undefined || localAge === null) return NaN;
+    return Number(localAge);
+  })();
+  const isChild = !Number.isNaN(ageNumber) && ageNumber <= 7;
+
+  useEffect(() => {
+    if (!openDropdown) return undefined;
+    const handleOutside = (event) => {
+      if (!event.target.closest('.bmi-dropdown-field')) {
+        setOpenDropdown(null);
+      }
+    };
+    document.addEventListener('mousedown', handleOutside);
+    document.addEventListener('touchstart', handleOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleOutside);
+      document.removeEventListener('touchstart', handleOutside);
+    };
+  }, [openDropdown]);
+
+  const toggleDropdown = (key, forceClose) => {
+    if (forceClose === false) {
+      setOpenDropdown(null);
+      return;
+    }
+    setOpenDropdown((prev) => (prev === key ? null : key));
+  };
 
   useEffect(() => {
     if (question.type === 'bmi_age' && answer && isFirstMount.current) {
-      setLocalAge(answer.yas || '0');
-      setLocalHeight(Number(answer?.boy) || minBoy);
-      setLocalWeight(Number(answer?.kilo) || minKilo);
+      const pick = (v) => {
+        if (v && typeof v === 'object' && v.value !== undefined) return String(v.value);
+        if (v === undefined || v === null || v === '') return '';
+        return String(v);
+      };
+      const restoredAge = pick(answer.yas_gercek);
+      setLocalAge(restoredAge);
+      if (restoredAge === '' || Number(restoredAge) > 7) {
+        setLocalHeight(pick(answer.boy));
+        setLocalWeight(pick(answer.kilo));
+      }
       isFirstMount.current = false;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (question.type === 'bmi_age') {
+      if (localAge === '') {
+        if (bmiValue) setBmiValue('');
+        if (answer && answer.yas_gercek !== '' && answer.yas_gercek !== undefined) {
+          onAnswerChange(question.id, { yas_gercek: '', boy: '', kilo: '', vki: '', vki_sayisal: '' });
+        }
+        if (answers.yas) onAnswerChange('yas', '');
+        if (answers.bmi) onAnswerChange('bmi', '');
+        return;
+      }
+
       let vki = '';
       let vkiKategori = '';
       let yasKategori = '';
       let yasNumeric = null;
       if (localAge && !isNaN(Number(localAge))) {
         yasNumeric = Number(localAge);
-      } else if (localAge === '65+') {
-        yasNumeric = 65;
+      } else if (localAge === '65+' || localAge === '85+') {
+        yasNumeric = localAge === '85+' ? 85 : 65;
       }
-      // Yaş kategorisini belirle
+
       if (localAge !== '' && yasNumeric !== null) {
         if (yasNumeric <= 7) {
           yasKategori = '0-7';
-          vkiKategori = 'Zayıf'; // 0-7 yaş için otomatik Zayıf
+          vkiKategori = 'Zayıf';
         } else {
           yasKategori = '7+';
         }
       }
-      // VKI hesapla (her yaş için)
-      if (localAge !== '' && yasNumeric !== null && localHeight > 0 && localWeight > 0) {
-        const vkiHesaplanan = (localWeight / ((localHeight / 100) ** 2));
-        vki = vkiHesaplanan.toFixed(1); // vki_sayisal için her zaman sayısal değer
+
+      const heightNum = Number(localHeight && typeof localHeight === 'object' ? localHeight.value : localHeight);
+      const weightNum = Number(localWeight && typeof localWeight === 'object' ? localWeight.value : localWeight);
+      const ageRaw = localAge && typeof localAge === 'object' ? localAge.value : localAge;
+      const ageStr = ageRaw === undefined || ageRaw === null ? '' : String(ageRaw);
+      const hasBody = ageStr !== '' && localHeight !== '' && localWeight !== '' && heightNum > 0 && weightNum > 0;
+
+      if (ageStr !== '' && yasNumeric !== null && hasBody) {
+        const vkiHesaplanan = (weightNum / ((heightNum / 100) ** 2));
+        vki = vkiHesaplanan.toFixed(1);
         if (yasNumeric > 7) {
           setBmiValue(vki);
           if (vkiHesaplanan < 18.5) {
@@ -143,40 +290,45 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
             vkiKategori = 'Kilolu';
           }
         } else {
-          setBmiValue(''); // 0-7 yaş için VKI gösterilmez
+          setBmiValue('');
         }
       } else {
-      setBmiValue('');
+        setBmiValue('');
+        if (yasNumeric === null || yasNumeric > 7) {
+          vkiKategori = '';
+        }
       }
-      // Yeni cevapları oluştur
+
       const newBmiAge = {
-        yas_gercek: localAge,
-        boy: localHeight,
-        kilo: localWeight,
+        yas_gercek: ageStr,
+        boy: isChild ? minBoy : (localHeight === '' ? '' : heightNum),
+        kilo: isChild ? minKilo : (localWeight === '' ? '' : weightNum),
         vki: vkiKategori,
         vki_sayisal: vki
       };
-      // Eğer cevap değiştiyse güncelle
+
       if (JSON.stringify(answer) !== JSON.stringify(newBmiAge)) {
         onAnswerChange(question.id, newBmiAge);
       }
-      // Kategoriler için de aynı kontrol
       if (yasKategori && answers.yas !== yasKategori) {
         onAnswerChange('yas', yasKategori);
       }
       if (vkiKategori && answers.bmi !== vkiKategori) {
         onAnswerChange('bmi', vkiKategori);
+      } else if (!vkiKategori && answers.bmi) {
+        onAnswerChange('bmi', '');
       }
     }
-  }, [localAge, localHeight, localWeight, question.id, onAnswerChange, question.type, answer, answers, bmiValue]);
+  }, [localAge, localHeight, localWeight, question.id, onAnswerChange, question.type, answer, answers, bmiValue, isChild]);
 
-  // Yaş 7'den küçükse boy ve kilo değerlerini resetle
+  // Yaş 7'den küçükse boy ve kilo seçimini temizle
   useEffect(() => {
-    if (question.id === 'bmi_age' && localAge !== '' && Number(localAge) <= 7) {
-      if (localHeight !== minBoy) setLocalHeight(minBoy);
-      if (localWeight !== minKilo) setLocalWeight(minKilo);
+    if (question.id === 'bmi_age' && isChild) {
+      if (localHeight !== '') setLocalHeight('');
+      if (localWeight !== '') setLocalWeight('');
+      if (openDropdown === 'boy' || openDropdown === 'kilo') setOpenDropdown(null);
     }
-  }, [localAge, question.id]);
+  }, [isChild, localHeight, localWeight, openDropdown, question.id]);
 
   // bmi_age tipi için özel render
   if (question.id === 'bmi_age') {
@@ -186,119 +338,50 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
       <h2 className="step-question-title">{question.question}</h2>
       <hr className="content-divider" />
       </div>
-        {/* Yaş, Boy, Kilo Container */}
-        <div className="bmi-input-container">
-          <div className="bmi-row-modern" style={{ marginBottom: '4px' }}>
-            <label htmlFor="yas-input">Yaşınız:</label>
-            <div className="bmi-value-group">
-              <input 
-                id="yas-input"
-                type="number"
-                className="bmi-value-box" 
-                value={localAge === 65 ? '65' : localAge} 
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === '') {
-                    setLocalAge('0');
-                  } else {
-                    const num = Math.min(65, Math.max(0, parseInt(val) || 0));
-                    setLocalAge(num);
-                  }
-                }}
-                min={0}
-                max={65}
-              />
-              <span className="bmi-unit">yaş</span>
-            </div>
-          </div>
-          <Slider
-            id="yas-slider"
-            min={0}
-            max={65}
-            step={1}
-            value={Number(localAge)}
-            onChange={(_, v) => setLocalAge(Number(v))}
-            className="MuiSlider-root"
+        {/* Yaş, Boy, Kilo - özel dropdown (ikinci görseldeki gibi) */}
+        <div className="bmi-input-container bmi-dropdown-container">
+          <BmiDropdown
+            id="yas-select"
+            title="Yaş"
+            value={localAge}
+            options={yasSelectOptions}
+            open={openDropdown === 'yas'}
+            onToggle={(force) => toggleDropdown('yas', force)}
+            onChange={setLocalAge}
           />
-          
-          <div className="bmi-row-modern" style={{ marginBottom: '4px' }}>
-            <label htmlFor="boy-input">Boyunuz:</label>
-            <div className="bmi-value-group">
-              <input 
-                id="boy-input"
-                type="number"
-                className={`bmi-value-box${localAge !== '' && Number(localAge) <= 7 ? ' bmi-disabled' : ''}`} 
-                value={localHeight}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === '') {
-                    setLocalHeight(minBoy);
-                  } else {
-                    const num = Math.min(maxBoy, Math.max(minBoy, parseInt(val) || minBoy));
-                    setLocalHeight(num);
-                  }
-                }}
-                disabled={localAge !== '' && Number(localAge) <= 7}
-                min={minBoy}
-                max={maxBoy}
-              />
-              <span className="bmi-unit">cm</span>
-            </div>
-          </div>
-          <Slider
-            id="boy-slider"
-            min={minBoy}
-            max={maxBoy}
-            value={Number(localHeight)}
-            onChange={(_, v) => setLocalHeight(Number(v))}
-            className={`MuiSlider-root${localAge !== '' && Number(localAge) <= 7 ? ' bmi-disabled-slider' : ''}`}
-            disabled={localAge !== '' && Number(localAge) <= 7}
+
+          <BmiDropdown
+            id="boy-select"
+            title="Boy"
+            value={localHeight}
+            options={boySelectOptions}
+            disabled={isChild}
+            open={openDropdown === 'boy'}
+            onToggle={(force) => toggleDropdown('boy', force)}
+            onChange={setLocalHeight}
           />
-          
-          <div className="bmi-row-modern" style={{ marginBottom: '4px' }}>
-            <label htmlFor="kilo-input">Kilonuz:</label>
-            <div className="bmi-value-group">
-              <input 
-                id="kilo-input"
-                type="number"
-                className={`bmi-value-box${localAge !== '' && Number(localAge) <= 7 ? ' bmi-disabled' : ''}`} 
-                value={localWeight}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === '') {
-                    setLocalWeight(minKilo);
-                  } else {
-                    const num = Math.min(maxKilo, Math.max(minKilo, parseInt(val) || minKilo));
-                    setLocalWeight(num);
-                  }
-                }}
-                disabled={localAge !== '' && Number(localAge) <= 7}
-                min={minKilo}
-                max={maxKilo}
-              />
-              <span className="bmi-unit">kg</span>
-            </div>
-          </div>
-          <Slider
-            id="kilo-slider"
-            min={minKilo}
-            max={maxKilo}
+
+          <BmiDropdown
+            id="kilo-select"
+            title="Kilo"
             value={localWeight}
-            onChange={(_, v) => setLocalWeight(v)}
-            className={`MuiSlider-root${localAge !== '' && Number(localAge) <= 7 ? ' bmi-disabled-slider' : ''}`}
-            disabled={localAge !== '' && Number(localAge) <= 7}
+            options={kiloSelectOptions}
+            disabled={isChild}
+            open={openDropdown === 'kilo'}
+            onToggle={(force) => toggleDropdown('kilo', force)}
+            onChange={setLocalWeight}
           />
         </div>
 
         {/* VKI Container */}
         <div className="vki-container">
-          {localAge !== '' && Number(localAge) <= 7 ? (
+          {isChild ? (
             <span className="bmi-warning">0-7 yaş arası için VKI değeri hesaplanamaz.</span>
           ) : (
             <div className="vki-content-wrapper">
               <VKIBar vki={bmiValue} />
               {bmiValue && (
-                <div className="vki-value" style={{ display: 'flex', alignItems: 'center', gap: 10, whiteSpace: 'nowrap' }}>
+                  <div className="vki-value" style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
                   <ClickAwayListener onClickAway={() => setVkiInfoOpen(false)}>
                   <Tooltip
                     title={'VKİ (Vücut Kitle İndeksi), kilonuzun boyunuza oranıdır. Referans: 18.5 altı Zayıf, 18.5–24.9 Orta, 25 ve üzeri Kilolu.'}
@@ -315,12 +398,12 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
                         display: 'inline-flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        width: 24,
-                        height: 24,
+                        width: 18,
+                        height: 18,
                         borderRadius: '50%',
                         background: '#e3f2fd',
                         color: '#1976d2',
-                        fontSize: 18,
+                        fontSize: 12,
                         fontWeight: 700,
                         cursor: 'help'
                       }}
@@ -485,7 +568,11 @@ const StepContent = ({ question, answer, onAnswerChange, answers }) => {
                   />
                 </div>
               </div>
-              <span className="option-text">{option}</span>
+              <span className="option-text">
+                {typeof option === 'object' && option !== null
+                  ? String(option.label ?? option.value ?? '')
+                  : option}
+              </span>
             </div>
           );
         })}

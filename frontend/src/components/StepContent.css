@@ -123,7 +123,7 @@
   border-radius: 8px;
   padding: 14px;
   margin-bottom: 10px;
-  margin-top: -60px;
+  margin-top: 0;
   margin-left: auto;
   margin-right: auto;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -135,13 +135,163 @@
   max-width: 700px;
 }
 
+.bmi-dropdown-container {
+  margin-top: 0;
+  align-items: stretch;
+  gap: 10px;
+  padding: 14px 16px;
+  max-width: 700px;
+  box-sizing: border-box;
+}
+
+.bmi-dropdown-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.bmi-dropdown-field.open {
+  z-index: 20;
+}
+
+.bmi-dropdown-field.disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.bmi-dropdown-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #5f6f7a;
+}
+
+.bmi-dd {
+  position: relative;
+  width: 100%;
+}
+
+.bmi-dd-trigger {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 40px;
+  height: 40px;
+  padding: 0 12px;
+  background: #fff;
+  border: 1.5px solid #cfd8dc;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bmi-dd-trigger:hover:not(:disabled) {
+  border-color: #90a4ae;
+}
+
+.bmi-dd-trigger.open,
+.bmi-dd-trigger:focus {
+  border-color: #4fa3c7;
+  box-shadow: 0 0 0 2px rgba(79, 163, 199, 0.16);
+  outline: none;
+}
+
+.bmi-dd-texts {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.bmi-dd-hint {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #4fa3c7;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.bmi-dd-trigger:not(.has-value) .bmi-dd-hint {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #90a4ae;
+}
+
+.bmi-dd-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1f2d3d;
+  line-height: 1.2;
+}
+
+.bmi-dd-chevron {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid #4fa3c7;
+  border-bottom: 2px solid #4fa3c7;
+  transform: rotate(45deg);
+  margin-top: -3px;
+  transition: transform 0.15s ease;
+}
+
+.bmi-dd-trigger.open .bmi-dd-chevron {
+  transform: rotate(225deg);
+  margin-top: 3px;
+}
+
+.bmi-dd-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  width: 100%;
+  max-height: 180px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #e3e8ec;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(31, 45, 61, 0.12);
+  z-index: 30;
+  box-sizing: border-box;
+}
+
+.bmi-dd-option {
+  padding: 7px 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #1f2d3d;
+  cursor: pointer;
+}
+
+.bmi-dd-option:hover {
+  background: #f3f8fb;
+}
+
+.bmi-dd-option.selected {
+  background: #e3f2fd;
+  color: #1565c0;
+  font-weight: 700;
+}
+
 /* VKI Container */
 .vki-container {
   background: #fff;
   border: 1px solid #e9ecef;
-  border-radius: 12px;
-  padding: 10px;
-  margin-top: 20px;
+  border-radius: 10px;
+  padding: 18px 16px;
+  margin-top: 10px;
   margin-left: auto;
   margin-right: auto;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -149,38 +299,44 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 6px;
   width: 100%;
   max-width: 700px;
+  box-sizing: border-box;
+  min-height: 72px;
 }
 
 /* VKI Content Wrapper */
 .vki-content-wrapper {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 15px;
+  justify-content: center;
+  gap: 12px;
   width: 100%;
-  padding-left: 100px;
+  padding-left: 0;
+  flex-wrap: nowrap;
 }
 
 /* VKI Value Text */
 .vki-value {
-  font-size: 0.9rem !important;
+  font-size: 0.85rem !important;
   color: #495057;
+  margin-top: 0 !important;
+  font-weight: 500;
 }
 
 /* VKI Value Box */
 .vki-value-box {
   background: #fff;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  padding: 6px 12px;
+  border: 1.5px solid #e9ecef;
+  border-radius: 6px;
+  padding: 3px 8px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #495057;
   display: inline-block;
-  min-width: 60px;
+  min-width: 42px;
   text-align: center;
 }
 
@@ -287,10 +443,10 @@
 }
 
 .vki-value {
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: #1976d2;
-  margin-top: 8px;
+  margin-top: 0;
 }
 
 select {
@@ -307,21 +463,22 @@ select {
 }
 
 .vki-bar-container {
-  margin: 10px 0 8px 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  width: auto;
+  flex: 0 0 auto;
 }
 
 .vki-bar-bg {
-  width: 300px;
-  margin: 0 auto;
-  margin-top: 20px;
+  width: 180px;
+  margin: 0;
+  margin-top: 0;
   position: relative;
-  height: 16px;
-  border-radius: 8px;
+  height: 10px;
+  border-radius: 6px;
   background: linear-gradient(
     to right,
     #4fc3f7 0%,
@@ -335,26 +492,18 @@ select {
 
 .vki-bar-indicator {
   position: absolute;
-  top: -8px;
-  width: 20px;
-  height: 32px;
+  top: -5px;
+  width: 12px;
+  height: 20px;
   background: #0d47a1;
-  border-radius: 10px;
+  border-radius: 8px;
   left: 0;
   transition: left 0.3s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
 }
 
 .vki-bar-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 1.2rem;
-  color: #888;
-  margin-top: 18px;
-  width: 100%;
-  max-width: 300px;
-  margin-left: auto;
-  margin-right: auto;
+  display: none;
 }
 
 .vki-bar-labels span {
@@ -668,33 +817,35 @@ select {
   
   /* VKI ayarları */
   .vki-container {
-    width: 90% !important;
+    width: 100% !important;
     max-width: 700px !important;
-    margin: 20px auto !important;
-    padding: 20px !important;
+    margin: 10px auto !important;
+    padding: 14px 12px !important;
+    min-height: 64px !important;
   }
   
   .vki-content-wrapper {
-    flex-direction: column !important;
-    gap: 10px !important;
-    text-align: center !important;
-    flex-direction: column !important;
-    margin-right: 155px;
-    margin-top: -50px;
+    flex-direction: row !important;
+    gap: 8px !important;
+    text-align: left !important;
+    margin-right: 0 !important;
+    margin-top: 0 !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
   }
   
   .vki-row {
-    margin-bottom: 15px !important;
+    margin-bottom: 8px !important;
   }
   
   .vki-label {
-    font-size: 1rem !important;
+    font-size: 0.85rem !important;
   }
   
   .vki-value {
     font-size: 0.8rem !important;
-    margin-top: -1px;
-    margin-right: -50px;
+    margin-top: 0 !important;
+    margin-right: 0 !important;
   }
   
   select {
@@ -704,18 +855,30 @@ select {
   }
   
   .vki-bar-container {
-    margin: 30px 0 10px 0 !important;
+    margin: 0 !important;
   }
   
   .vki-bar-bg {
-    width: 200px !important;
-    height: 14px !important;
+    width: 140px !important;
+    height: 10px !important;
+    margin-top: 0 !important;
   }
   
   .vki-bar-indicator {
-    width: 18px !important;
-    height: 28px !important;
-    top: -7px !important;
+    width: 12px !important;
+    height: 20px !important;
+    top: -5px !important;
+  }
+  
+  .bmi-dropdown-container {
+    max-width: 100% !important;
+    padding: 12px !important;
+    gap: 8px !important;
+  }
+
+  .bmi-dd-trigger {
+    min-height: 38px !important;
+    height: 38px !important;
   }
   
   .vki-bar-labels {
