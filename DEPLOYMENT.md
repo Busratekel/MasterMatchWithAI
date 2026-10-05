@@ -1,6 +1,6 @@
-# 🚀 Deployment Rehberi
+#  Deployment Rehberi
 
-## 📋 Ön Gereksinimler
+##  Ön Gereksinimler
 
 ### Sistem Gereksinimleri
 - **Python**: 3.8+
@@ -58,7 +58,7 @@ copy env.example .env
 # .env dosyasını düzenleyin
 ```
 
-## 🔐 Environment Yapılandırması
+## Environment Yapılandırması
 
 ### Backend (.env)
 
@@ -89,7 +89,7 @@ REACT_APP_NAME=Yastık Seçim Robotu
 REACT_APP_VERSION=1.0.0
 ```
 
-## 🚀 Production Deployment
+##  Production Deployment
 
 ### 1. Backend Deployment
 
@@ -146,30 +146,13 @@ npm run build
 - [ ] Database bağlantısı stabil
 - [ ] Log dosyaları oluşuyor
 
-## 🐛 Sorun Giderme
-
-### API Bağlantı Sorunları
-
-```powershell
-# Health kontrolü
-Invoke-WebRequest -Uri "https://yourdomain.com/api/health"
-
-# Event Viewer kontrolü
-Get-EventLog -LogName Application -Source W3SVC* -Newest 10
-```
+## Sorun Giderme
 
 ### IIS Sorunları
 
 1. **Application Pool durumunu kontrol edin**
 2. **Dosya izinlerini kontrol edin**
 3. **FastCGI ayarlarını kontrol edin**
-
-### Database Sorunları
-
-1. **ODBC Driver'ı kontrol edin**
-2. **Connection string'i test edin**
-3. **Firewall ayarlarını kontrol edin**
-
 ## 📊 Monitoring
 
 ### Log Dosyaları
@@ -177,28 +160,6 @@ Get-EventLog -LogName Application -Source W3SVC* -Newest 10
 - **Backend**: `backend/app.log`
 - **IIS**: `C:\inetpub\logs\LogFiles`
 - **Event Viewer**: Application logs
-
-### Health Checks
-
-- **API**: `GET /api/health`
-- **Frontend**: Ana sayfa yükleniyor mu?
-- **Database**: Bağlantı testi
-
-## 🔄 Güncelleme Süreci
-
-### 1. Yeni Versiyon Hazırlama
-
-```bash
-# Yeni branch oluştur
-git checkout -b release/v1.1.0
-
-# Değişiklikleri commit et
-git add .
-git commit -m "v1.1.0 release"
-
-# Push et
-git push origin release/v1.1.0
-```
 
 ### 2. Production'a Deploy
 
@@ -214,33 +175,3 @@ git push origin main
 git pull origin main
 ```
 
-### 3. Restart İşlemleri
-
-```powershell
-# IIS restart
-iisreset
-
-# Application Pool restart
-Import-Module WebAdministration
-Restart-WebAppPool "PillowSelectionRobot"
-```
-
-## 📞 Destek
-
-### Acil Durumlar
-
-1. **Sistem çökmesi**: Backup'tan restore
-2. **Database sorunu**: MSSQL Management Studio ile kontrol
-3. **Mail sorunu**: SMTP ayarlarını kontrol et
-4. **SSL sorunu**: Sertifika yenileme
-
-### İletişim
-
-- **Teknik Destek**: support@domain.com
-- **Acil Durum**: +90 XXX XXX XX XX
-- **Dokümantasyon**: [GitHub Wiki](https://github.com/your-username/PillowSelectionRobotyeni/wiki)
-
----
-
-**Son Güncelleme**: 2024
-**Versiyon**: 1.0 
