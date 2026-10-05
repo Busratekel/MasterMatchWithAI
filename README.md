@@ -2,8 +2,6 @@
 
 Flask backend ve React frontend ile geliştirilmiş yastık öneri sistemi.
 
-## 🚀 Hızlı Başlangıç
-
 ### Geliştirme Ortamı
 
 1. **Backend'i başlat:**
@@ -104,37 +102,7 @@ ALLOWED_ORIGINS=https://mastermatch.doquhome.com.tr
 ### Canlı Ortam
 - **Site:** https://mastermatch.doquhome.com.tr
 - **API:** https://mastermatch.doquhome.com.tr/api
-- **API Health:** mastermatch.doquhome.com.tr/api/health
 
-## 🔧 Manuel Deployment
-
-### 1. Backend Deployment
-```powershell
-# Environment dosyası oluştur
-cd backend
-copy env_production.txt .env
-
-# Python ortamı kur
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-pip install wfastcgi
-wfastcgi-enable
-
-# IIS'e kopyala
-# C:\inetpub\wwwroot\PillowSelectionRobot\backend\
-```
-
-### 2. Frontend Deployment
-```powershell
-# Production build al
-cd frontend
-npm install
-npm run build
-
-# IIS'e kopyala
-# C:\inetpub\wwwroot\PillowSelectionRobot\
-```
 
 ### 3. IIS Yapılandırması
 - **Ana Site:** `PillowSelectionRobot` → `C:\inetpub\wwwroot\PillowSelectionRobot`
@@ -146,20 +114,6 @@ npm run build
 Detaylı kontrol listesi için [PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md) dosyasını inceleyin.
 
 ## 🚨 Sorun Giderme
-
-### API Bağlantı Sorunları
-```powershell
-# Health kontrolü
-Invoke-WebRequest -Uri "http://localhost:5001/api/health"
-
-# Event Viewer kontrolü
-Get-EventLog -LogName Application -Source W3SVC* -Newest 10
-```
-
-### IIS Sorunları
-- IIS Manager'da site durumunu kontrol edin
-- Application Pool'un çalıştığını kontrol edin
-- Dosya izinlerini kontrol edin
 
 ### FastCGI Sorunları
 ```powershell
