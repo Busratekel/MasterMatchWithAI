@@ -167,14 +167,348 @@ Bu garanti, Doqu Home'un ürünlerine duyduğu güveni temsil eder.
 """
 
 
+def _resolve_pdf_font_path():
+    """Türkçe karakter destekleyen bir TTF font yolu bulur."""
+    candidates = [
+        r'C:\Windows\Fonts\arial.ttf',
+        r'C:\Windows\Fonts\calibri.ttf',
+        r'C:\Windows\Fonts\tahoma.ttf',
+        '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+        '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
+        '/usr/share/fonts/truetype/freefont/FreeSans.ttf',
+    ]
+    for path in candidates:
+        if os.path.exists(path):
+            return path
+    return None
+
+
+def build_iade_proseduru_pdf_bytes(text=None):
+    """İade prosedürü metninden PDF (bytes) üretir."""
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.lib.units import cm
+
+    content = (text or IADE_PROSEDURU_METNI).strip()
+    buffer = BytesIO()
+    page_width, page_height = A4
+    c = canvas.Canvas(buffer, pagesize=A4)
+
+    font_name = 'Helvetica'
+    font_path = _resolve_pdf_font_path()
+    if font_path:
+        try:
+            pdfmetrics.registerFont(TTFont('IadeFont', font_path))
+            font_name = 'IadeFont'
+        except Exception as font_err:
+            print(f"PDF font yükleme uyarısı: {font_err}")
+
+    left = 2 * cm
+    right = page_width - 2 * cm
+    top = page_height - 2 * cm
+    bottom = 2 * cm
+    max_width = right - left
+    line_height = 14
+    y = top
+
+    def draw_wrapped_line(raw_line, size=10, leading=None):
+        nonlocal y
+        leading = leading or (size + 4)
+        c.setFont(font_name, size)
+        words = (raw_line or '').split(' ')
+        if not words or (len(words) == 1 and words[0] == ''):
+            y -= leading
+            if y < bottom:
+                c.showPage()
+                c.setFont(font_name, size)
+                y = top
+            return
+
+        current = ''
+        for word in words:
+            candidate = word if not current else f'{current} {word}'
+            if c.stringWidth(candidate, font_name, size) <= max_width:
+                current = candidate
+            else:
+                if y < bottom:
+                    c.showPage()
+                    c.setFont(font_name, size)
+                    y = top
+                c.drawString(left, y, current)
+                y -= leading
+                current = word
+        if current:
+            if y < bottom:
+                c.showPage()
+                c.setFont(font_name, size)
+                y = top
+            c.drawString(left, y, current)
+            y -= leading
+
+    lines = content.split('\n')
+    for idx, line in enumerate(lines):
+        stripped = line.strip()
+        if idx == 0 and stripped:
+            draw_wrapped_line(stripped, size=14, leading=20)
+            y -= 6
+        elif not stripped:
+            y -= 8
+            if y < bottom:
+                c.showPage()
+                y = top
+        else:
+            draw_wrapped_line(stripped, size=10, leading=line_height)
+
+    c.save()
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
+    return pdf_bytes
+
+
+def _is_knee_pillow_name(name: str) -> bool:
+    n = (name or '').lower()
+    return ('diz arası' in n) or ('diz arasi' in n)
+
+
+def _fetch_image_bytes(url_or_path, timeout=8):
+    """Ürün görselini URL veya yerel yoldan okur."""
+    if not url_or_path:
+        return None
+    try:
+        src = str(url_or_path).strip()
+        if src.startswith('http://') or src.startswith('https://'):
+            import urllib.request
+            import ssl
+            req = urllib.request.Request(src, headers={'User-Agent': 'MasterMatchPDF/1.0'})
+            ctx = ssl.create_default_context()
+            with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
+                return resp.read()
+        # Yerel dosya / relative path
+        candidates = [
+            src,
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), src),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'public', os.path.basename(src)),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'frontend', 'public', os.path.basename(src)),
+        ]
+        for path in candidates:
+            if os.path.isfile(path):
+                with open(path, 'rb') as f:
+                    return f.read()
+    except Exception as img_err:
+        print(f"PDF görsel okunamadı ({url_or_path}): {img_err}")
+    return None
+
+
+def build_recommendation_pdf_bytes(recommendations):
+    """Önerilen yastık listesinden görselli PDF (bytes) üretir."""
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.lib.units import cm
+    from reportlab.lib.colors import HexColor, white, black
+    from reportlab.lib.utils import ImageReader
+
+    buffer = BytesIO()
+    page_width, page_height = A4
+    c = canvas.Canvas(buffer, pagesize=A4)
+
+    font_name = 'Helvetica'
+    font_path = _resolve_pdf_font_path()
+    if font_path:
+        try:
+            pdfmetrics.registerFont(TTFont('OneriFont', font_path))
+            font_name = 'OneriFont'
+        except Exception as font_err:
+            print(f"Öneri PDF font yükleme uyarısı: {font_err}")
+
+    left = 1.6 * cm
+    right = page_width - 1.6 * cm
+    top = page_height - 1.4 * cm
+    bottom = 1.8 * cm
+    content_width = right - left
+    accent = HexColor('#1f4e79')
+    muted = HexColor('#6b7280')
+    card_border = HexColor('#e5e7eb')
+    card_bg = HexColor('#f8fafc')
+    link_color = HexColor('#0b6e99')
+
+    tarih_str = datetime.now().strftime('%d.%m.%Y')
+    y = top
+
+    # Sağ üst tarih
+    c.setFont(font_name, 9)
+    c.setFillColor(muted)
+    date_label = f'Tarih: {tarih_str}'
+    c.drawRightString(right, y, date_label)
+    y -= 10
+
+    # Başlık bloğu
+    c.setFillColor(accent)
+    c.setFont(font_name, 18)
+    c.drawCentredString(page_width / 2, y - 6, 'MASTER MATCH')
+    y -= 26
+    c.setFont(font_name, 13)
+    c.drawCentredString(page_width / 2, y, 'YASTIK ÖNERİ SONUCU')
+    y -= 12
+    c.setStrokeColor(HexColor('#d1d5db'))
+    c.setLineWidth(0.8)
+    c.line(left, y, right, y)
+    y -= 16
+
+    c.setFillColor(HexColor('#374151'))
+    c.setFont(font_name, 10)
+    intro = 'Master Match Yastık Seçim Robotu yanıtlarınıza göre size önerilen yastıklar aşağıdadır.'
+    # basit wrap
+    words = intro.split(' ')
+    line = ''
+    for word in words:
+        candidate = word if not line else f'{line} {word}'
+        if c.stringWidth(candidate, font_name, 10) <= content_width:
+            line = candidate
+        else:
+            c.drawString(left, y, line)
+            y -= 13
+            line = word
+    if line:
+        c.drawString(left, y, line)
+        y -= 18
+
+    c.setFillColor(accent)
+    c.setFont(font_name, 12)
+    c.drawString(left, y, 'Önerilen Ürünler')
+    y -= 14
+
+    products = []
+    for yastik in recommendations or []:
+        name = (yastik.get('isim') or '').strip()
+        if not name or _is_knee_pillow_name(name):
+            continue
+        products.append({
+            'isim': name,
+            'link': (yastik.get('link') or '').strip(),
+            'gorsel': (yastik.get('gorsel') or '').strip(),
+        })
+
+    img_size = 2.4 * cm
+    row_h = 3.0 * cm
+    text_x = left + img_size + 0.55 * cm
+
+    def new_page():
+        nonlocal y
+        c.showPage()
+        y = top
+        c.setFont(font_name, 9)
+        c.setFillColor(muted)
+        c.drawRightString(right, y, date_label)
+        y -= 18
+
+    if not products:
+        c.setFillColor(muted)
+        c.setFont(font_name, 10)
+        c.drawString(left, y, 'Önerilen ürün bulunamadı.')
+        y -= 16
+    else:
+        for idx, item in enumerate(products, start=1):
+            if y - row_h < bottom:
+                new_page()
+
+            # Kart arka planı
+            card_bottom = y - row_h + 0.25 * cm
+            c.setFillColor(card_bg)
+            c.setStrokeColor(card_border)
+            c.setLineWidth(0.7)
+            c.roundRect(left, card_bottom, content_width, row_h - 0.2 * cm, 6, fill=1, stroke=1)
+
+            # Görsel kutusu
+            img_x = left + 0.28 * cm
+            img_y = card_bottom + (row_h - 0.2 * cm - img_size) / 2
+            img_bytes = _fetch_image_bytes(item['gorsel'])
+            if img_bytes:
+                try:
+                    reader = ImageReader(BytesIO(img_bytes))
+                    c.drawImage(
+                        reader,
+                        img_x,
+                        img_y,
+                        width=img_size,
+                        height=img_size,
+                        preserveAspectRatio=True,
+                        mask='auto',
+                        anchor='c'
+                    )
+                except Exception as draw_err:
+                    print(f"PDF görsel çizilemedi: {draw_err}")
+                    c.setFillColor(white)
+                    c.setStrokeColor(card_border)
+                    c.rect(img_x, img_y, img_size, img_size, fill=1, stroke=1)
+            else:
+                c.setFillColor(white)
+                c.setStrokeColor(card_border)
+                c.rect(img_x, img_y, img_size, img_size, fill=1, stroke=1)
+                c.setFillColor(muted)
+                c.setFont(font_name, 8)
+                c.drawCentredString(img_x + img_size / 2, img_y + img_size / 2 - 3, 'Görsel yok')
+
+            # Ürün adı
+            name_y = card_bottom + row_h - 1.05 * cm
+            c.setFillColor(HexColor('#111827'))
+            c.setFont(font_name, 11)
+            name_text = f'{idx}. {item["isim"]}'
+            max_name_w = right - text_x - 0.3 * cm
+            # taşarsa kısalt
+            if c.stringWidth(name_text, font_name, 11) > max_name_w:
+                while name_text and c.stringWidth(name_text + '…', font_name, 11) > max_name_w:
+                    name_text = name_text[:-1]
+                name_text = name_text.rstrip() + '…'
+            c.drawString(text_x, name_y, name_text)
+
+            # Tıklanabilir "Ürünü İncele" (uzun URL yazılmaz)
+            if item['link']:
+                link_label = 'Ürünü İncele →'
+                c.setFillColor(link_color)
+                c.setFont(font_name, 10)
+                link_y = name_y - 18
+                c.drawString(text_x, link_y, link_label)
+                link_w = c.stringWidth(link_label, font_name, 10)
+                c.linkURL(
+                    item['link'],
+                    (text_x, link_y - 2, text_x + link_w + 2, link_y + 11),
+                    relative=0
+                )
+                c.setStrokeColor(link_color)
+                c.setLineWidth(0.6)
+                c.line(text_x, link_y - 1, text_x + link_w, link_y - 1)
+
+            y = card_bottom - 0.35 * cm
+
+    if y - 40 < bottom:
+        new_page()
+
+    y -= 8
+    c.setFillColor(HexColor('#374151'))
+    c.setFont(font_name, 10)
+    c.drawString(left, y, 'Eğer memnun kalmazsanız 100 gün içinde kolayca değiştirebilirsiniz.')
+    y -= 18
+    c.setFillColor(muted)
+    c.setFont(font_name, 8)
+    c.drawString(left, y, 'Bu belge Master Match Yastık Seçim Robotu sonuç çıktısıdır. Doqu Home')
+
+    c.save()
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
+    return pdf_bytes
+
+
 def build_recommendation_mail_html(recommendations, logo_cid=None):
     """Soru/cevap ve mükemmel eşleşme olmadan, iade belgesi tarzı mail HTML'i üretir."""
     def normalize(s: str) -> str:
         return (s or '').lower()
 
     def is_knee_pillow(name: str) -> bool:
-        n = normalize(name)
-        return ('diz arası' in n) or ('diz arasi' in n)
+        return _is_knee_pillow_name(name)
 
     tarih_str = datetime.now().strftime('%d.%m.%Y')
     tarih_saat_str = datetime.now().strftime('%d.%m.%Y %H:%M')
@@ -217,7 +551,6 @@ def build_recommendation_mail_html(recommendations, logo_cid=None):
 
     return f'''
     <div style="font-family:Arial,Helvetica,sans-serif;color:#222;max-width:680px;margin:0 auto;line-height:1.55;">
-      <div style="text-align:right;font-size:12px;color:#777;margin-bottom:8px;">{tarih_saat_str} &nbsp; Doqu Home</div>
       <div style="text-align:center;margin:8px 0 18px;">
         {logo_html}
         <div style="font-size:22px;font-weight:700;letter-spacing:0.5px;">MASTER MATCH</div>
@@ -229,29 +562,20 @@ def build_recommendation_mail_html(recommendations, logo_cid=None):
       <p style="margin:0 0 12px;">
         İhtiyaçlarınızı anlamak ve size en uygun yastığı önerebilmek için geliştirilen
         <b>Master Match Yastık Seçim Robotu</b> uygulamasını doğru ve eksiksiz tamamladığınız için teşekkür ederiz.
-        Master Match sorularına verdiğiniz yanıtlar doğrultusunda önerdiğimiz yastıklar aşağıda belirtilmiştir.
+        Master Match sorularına verdiğiniz yanıtlar doğrultusunda önerdiğimiz yastıklar ek olarak gönderilmiştir.
       </p>
       <p style="margin:0 0 18px;">
         Size önerilen yastıkları inceleyebilir, dilediğiniz yastığı tercih edebilirsiniz.
       </p>
-
-      <div style="font-size:15px;font-weight:700;margin:8px 0 6px;">Önerilen Ürünler</div>
-      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;border:1px solid #ececec;border-radius:8px;overflow:hidden;">
-        {products_section}
-      </table>
 
       <p style="margin:18px 0 10px;">
         Eğer memnun kalmazsanız <b>100 gün</b> içinde kolayca değiştirebilirsiniz.
       </p>
 
       <div style="margin-top:18px;padding:12px 14px;background:#f5f8fb;border:1px solid #d9e4ef;border-radius:8px;font-size:13px;">
-        <b>Bilgi:</b> Doqu Home Koşulsuz İade Garantisi / iade prosedürü bu e-postaya <b>ek dosya</b> olarak gönderilmiştir.
-        İade işlemlerinde bu sonuç çıktısını ve ekteki prosedürü kullanabilirsiniz.
+        <b>Bilgi:</b> Önerilen yastık listesi ve Doqu Home Koşulsuz İade Garantisi / iade prosedürü bu e-postaya <b>PDF ek</b> olarak gönderilmiştir.
+        İade işlemlerinde ekteki sonuç çıktısını ve prosedürü kullanabilirsiniz.
       </div>
-
-      <p style="margin:20px 0 0;font-size:12px;color:#777;">
-        Bu belge Master Match Yastık Seçim Robotu sonuç çıktısıdır. Doqu Home
-      </p>
     </div>
     '''
 
@@ -302,7 +626,7 @@ def send_analysis_email(email, mail_content, from_address=None, bcc_emails=None,
                     mime_type,
                     content,
                     'inline',
-                    headers=[('Content-ID', f'<{cid}>'), ('X-Attachment-Id', cid)]
+                    headers={'Content-ID': f'<{cid}>', 'X-Attachment-Id': cid}
                 )
             except Exception as attach_err:
                 print(f"Mail inline görsel hatası: {attach_err}")
@@ -1175,11 +1499,32 @@ def save_mail():
         logo_bytes = get_mail_logo_bytes()
         logo_cid = 'mastermatch_logo' if logo_bytes else None
         complete_mail_content = build_recommendation_mail_html(recommendations or [], logo_cid=logo_cid)
-        iade_attachment = (
-            'Doqu_Home_Kosulsuz_Iade_Proseduru.txt',
-            IADE_PROSEDURU_METNI.encode('utf-8'),
-            'text/plain'
-        )
+        mail_attachments = []
+        try:
+            iade_pdf_bytes = build_iade_proseduru_pdf_bytes()
+            mail_attachments.append((
+                'Doqu_Home_Kosulsuz_Iade_Proseduru.pdf',
+                iade_pdf_bytes,
+                'application/pdf'
+            ))
+        except Exception as pdf_err:
+            print(f"İade prosedürü PDF oluşturulamadı, txt gönderiliyor: {pdf_err}")
+            mail_attachments.append((
+                'Doqu_Home_Kosulsuz_Iade_Proseduru.txt',
+                IADE_PROSEDURU_METNI.encode('utf-8'),
+                'text/plain'
+            ))
+
+        try:
+            oneri_pdf_bytes = build_recommendation_pdf_bytes(recommendations or [])
+            mail_attachments.append((
+                'Master_Match_Yastik_Oneri_Sonucu.pdf',
+                oneri_pdf_bytes,
+                'application/pdf'
+            ))
+        except Exception as oneri_pdf_err:
+            print(f"Öneri PDF oluşturulamadı: {oneri_pdf_err}")
+
         inline_images = []
         if logo_bytes and logo_cid:
             inline_images.append((logo_cid, 'welcomelogo.png', logo_bytes, 'image/png'))
@@ -1189,7 +1534,7 @@ def save_mail():
             complete_mail_content,
             from_address,
             bcc_emails,
-            attachments=[iade_attachment],
+            attachments=mail_attachments,
             inline_images=inline_images
         )
 
