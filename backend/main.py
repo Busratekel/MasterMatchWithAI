@@ -62,7 +62,9 @@ TURKEY_TZ = timezone(timedelta(hours=3))
 # Flask-Limiter uyarısını bastır (geliştirme ortamı için)
 warnings.filterwarnings("ignore", message="Using the in-memory storage")
 
-load_dotenv()
+# IIS'te cwd genelde backend klasörü değildir; .env'i dosya yolundan yükle
+_ENV_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+load_dotenv(_ENV_PATH)
 
 app = Flask(__name__)
 # Static folder ayarı - PDF dosyaları için
@@ -333,7 +335,6 @@ def build_recommendation_pdf_bytes(recommendations):
     muted = HexColor('#6b7280')
     card_border = HexColor('#e5e7eb')
     card_bg = HexColor('#f8fafc')
-    link_color = HexColor('#0b6e99')
 
     tarih_str = datetime.now().strftime('%d.%m.%Y')
     y = top
@@ -388,7 +389,6 @@ def build_recommendation_pdf_bytes(recommendations):
             continue
         products.append({
             'isim': name,
-            'link': (yastik.get('link') or '').strip(),
             'gorsel': (yastik.get('gorsel') or '').strip(),
         })
 
@@ -452,8 +452,8 @@ def build_recommendation_pdf_bytes(recommendations):
                 c.setFont(font_name, 8)
                 c.drawCentredString(img_x + img_size / 2, img_y + img_size / 2 - 3, 'Görsel yok')
 
-            # Ürün adı
-            name_y = card_bottom + row_h - 1.05 * cm
+            # Ürün adı (kart ortası)
+            name_y = card_bottom + (row_h - 0.2 * cm) / 2 - 3
             c.setFillColor(HexColor('#111827'))
             c.setFont(font_name, 11)
             name_text = f'{idx}. {item["isim"]}'
@@ -464,23 +464,6 @@ def build_recommendation_pdf_bytes(recommendations):
                     name_text = name_text[:-1]
                 name_text = name_text.rstrip() + '…'
             c.drawString(text_x, name_y, name_text)
-
-            # Tıklanabilir "Ürünü İncele" (uzun URL yazılmaz)
-            if item['link']:
-                link_label = 'Ürünü İncele →'
-                c.setFillColor(link_color)
-                c.setFont(font_name, 10)
-                link_y = name_y - 18
-                c.drawString(text_x, link_y, link_label)
-                link_w = c.stringWidth(link_label, font_name, 10)
-                c.linkURL(
-                    item['link'],
-                    (text_x, link_y - 2, text_x + link_w + 2, link_y + 11),
-                    relative=0
-                )
-                c.setStrokeColor(link_color)
-                c.setLineWidth(0.6)
-                c.line(text_x, link_y - 1, text_x + link_w, link_y - 1)
 
             y = card_bottom - 0.35 * cm
 
@@ -596,9 +579,21 @@ def get_mail_logo_bytes():
     return None
 
 
+class _MailHeaderPairs(list):
+    """Flask-Mail eski sürüm list/tuple, yeni sürüm .items() bekler — ikisini de destekler."""
+
+    def items(self):
+        return list(self)
+
+
 # Mail gönderme fonksiyonu
 def send_analysis_email(email, mail_content, from_address=None, bcc_emails=None, attachments=None, inline_images=None):
     try:
+        if not app.config.get('MAIL_USERNAME') or not app.config.get('MAIL_PASSWORD'):
+            return False, 'MAIL_USERNAME / MAIL_PASSWORD eksik (.env canlıda yüklenmemiş olabilir)'
+        if not (from_address or app.config.get('MAIL_DEFAULT_SENDER')):
+            return False, 'MAIL_DEFAULT_SENDER eksik'
+
         msg = Message(
             subject='Master Match Yastık Öneri Sonucu - Doqu Home',
             sender=from_address or app.config['MAIL_DEFAULT_SENDER'],
@@ -626,7 +621,10 @@ def send_analysis_email(email, mail_content, from_address=None, bcc_emails=None,
                     mime_type,
                     content,
                     'inline',
-                    headers={'Content-ID': f'<{cid}>', 'X-Attachment-Id': cid}
+                    headers=_MailHeaderPairs([
+                        ('Content-ID', f'<{cid}>'),
+                        ('X-Attachment-Id', cid),
+                    ])
                 )
             except Exception as attach_err:
                 print(f"Mail inline görsel hatası: {attach_err}")

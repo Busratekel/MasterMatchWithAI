@@ -177,10 +177,13 @@ const ResultsReadyPage = ({ logId, answers, onShowResults, recommendation }) => 
     // Sonuçları görmeye tıklanınca analizAlindiMi: true gönder
     // VE önerilen yastıkları kaydet
     if (logId) {
-      // Önerilen yastık isimlerini al
+      // Önerilen yastık isimlerini al (API: { recommendations: [...] })
       let pillowNames = [];
-      if (recommendation && recommendation.recommendation && Array.isArray(recommendation.recommendation)) {
-        pillowNames = recommendation.recommendation.map(pillow => pillow.isim || pillow.name).filter(Boolean);
+      const readyList = Array.isArray(recommendation?.recommendations)
+        ? recommendation.recommendations
+        : (Array.isArray(recommendation?.recommendation) ? recommendation.recommendation : []);
+      if (readyList.length > 0) {
+        pillowNames = readyList.map(pillow => pillow.isim || pillow.name).filter(Boolean);
       }
       
       fetch(API_ENDPOINTS.SAVE_MAIL, {
@@ -227,8 +230,11 @@ const ResultsReadyPage = ({ logId, answers, onShowResults, recommendation }) => 
     const cleanedEmail = cleanedEmailPre;
     
     // Önerilen yastıkları tam obje olarak gönder (isim + görsel + link)
+    // API cevabı: { recommendations: [...] } — eski path için .recommendation da desteklenir
     let recommendationList = [];
-    if (recommendation && recommendation.recommendation && Array.isArray(recommendation.recommendation)) {
+    if (Array.isArray(recommendation?.recommendations)) {
+      recommendationList = recommendation.recommendations;
+    } else if (Array.isArray(recommendation?.recommendation)) {
       recommendationList = recommendation.recommendation;
     }
     
